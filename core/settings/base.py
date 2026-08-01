@@ -50,6 +50,9 @@ INSTALLED_APPS = [
     "inventory.apps.InventoryConfig",
     "shipping.apps.ShippingConfig",
     "promotions.apps.PromotionsConfig",
+    "search.apps.SearchConfig",
+    "analytics.apps.AnalyticsConfig",
+    "notifications.apps.NotificationsConfig",
 ]
 
 MIDDLEWARE = [

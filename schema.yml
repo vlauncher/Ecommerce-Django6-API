@@ -5,6 +5,53 @@ info:
   description: Production-grade Django 6 Ecommerce API with JWT authentication, OTP
     verification, and background email tasks.
 paths:
+  /api/v1/analytics/admin/platform/:
+    get:
+      operationId: analytics_admin_platform_retrieve
+      description: Platform-wide financial and vendor performance metrics (Admin only).
+      tags:
+      - Analytics - Admin
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminPlatformAnalyticsResponse'
+          description: ''
+  /api/v1/analytics/vendor/sales/:
+    get:
+      operationId: analytics_vendor_sales_retrieve
+      description: Vendor sales performance dashboard metrics.
+      tags:
+      - Analytics - Vendor Dashboard
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VendorSalesAnalyticsResponse'
+          description: ''
+  /api/v1/analytics/vendor/top-products/:
+    get:
+      operationId: analytics_vendor_top_products_list
+      description: Best selling products for vendor.
+      tags:
+      - Analytics - Vendor Dashboard
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/VendorTopProductsResponse'
+          description: ''
   /api/v1/auth/google/:
     post:
       operationId: auth_google_create
@@ -1109,6 +1156,67 @@ paths:
               schema:
                 $ref: '#/components/schemas/PaginatedStockRecordList'
           description: ''
+  /api/v1/notifications/:
+    get:
+      operationId: notifications_list
+      description: List authenticated user's notifications.
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      tags:
+      - Notifications
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedNotificationList'
+          description: ''
+  /api/v1/notifications/{id}/read/:
+    post:
+      operationId: notifications_read_create
+      description: Mark a notification as read.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Notifications
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NotificationRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/NotificationRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/NotificationRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+          description: ''
   /api/v1/orders/:
     get:
       operationId: orders_list
@@ -1767,6 +1875,51 @@ paths:
               schema:
                 $ref: '#/components/schemas/Review'
           description: ''
+  /api/v1/search/products/:
+    get:
+      operationId: search_products_list
+      description: Full-text product search with faceted filtering.
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      tags:
+      - Search
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedProductListList'
+          description: ''
+  /api/v1/search/suggestions/:
+    get:
+      operationId: search_suggestions_retrieve
+      description: Instant search autocomplete suggestions for search bar.
+      tags:
+      - Search
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchSuggestionResponse'
+          description: ''
   /api/v1/shipping/admin/zones/:
     get:
       operationId: shipping_admin_zones_list
@@ -2001,6 +2154,25 @@ paths:
           description: ''
 components:
   schemas:
+    AdminPlatformAnalyticsResponse:
+      type: object
+      properties:
+        total_active_vendors:
+          type: integer
+        total_orders:
+          type: integer
+        gross_revenue:
+          type: string
+        platform_commission_earned:
+          type: string
+        average_order_value:
+          type: string
+      required:
+      - average_order_value
+      - gross_revenue
+      - platform_commission_earned
+      - total_active_vendors
+      - total_orders
     ApplyCoupon:
       type: object
       properties:
@@ -2300,6 +2472,18 @@ components:
       - id
       - name
       - slug
+    ChannelEnum:
+      enum:
+      - email
+      - sms
+      - push
+      - in_app
+      type: string
+      description: |-
+        * `email` - Email
+        * `sms` - SMS
+        * `push` - Push Notification
+        * `in_app` - In-App Notification
     Checkout:
       type: object
       properties:
@@ -2653,6 +2837,40 @@ components:
         * `return_restock` - Return Restock
         * `manual_adjustment` - Manual Adjustment
         * `damage_loss` - Damage / Loss
+    Notification:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        title:
+          type: string
+          readOnly: true
+        message:
+          type: string
+          readOnly: true
+        channel:
+          allOf:
+          - $ref: '#/components/schemas/ChannelEnum'
+          readOnly: true
+        is_read:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - channel
+      - created_at
+      - id
+      - message
+      - title
+    NotificationRequest:
+      type: object
+      properties:
+        is_read:
+          type: boolean
     OrderDetail:
       type: object
       properties:
@@ -2981,6 +3199,29 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Coupon'
+    PaginatedNotificationList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Notification'
     PaginatedOrderListList:
       type: object
       required:
@@ -4362,6 +4603,22 @@ components:
       - created_at
       - id
       - variant
+    SearchSuggestionResponse:
+      type: object
+      properties:
+        products:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+        categories:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+      required:
+      - categories
+      - products
     ShippingMethod:
       type: object
       properties:
@@ -5016,6 +5273,25 @@ components:
       required:
       - business_email
       - store_name
+    VendorSalesAnalyticsResponse:
+      type: object
+      properties:
+        total_orders:
+          type: integer
+        total_sales:
+          type: string
+        total_commission:
+          type: string
+        total_payout:
+          type: string
+        average_order_value:
+          type: string
+      required:
+      - average_order_value
+      - total_commission
+      - total_orders
+      - total_payout
+      - total_sales
     VendorSubOrder:
       type: object
       properties:
@@ -5111,6 +5387,22 @@ components:
         * `shipped` - Shipped
         * `delivered` - Delivered
         * `cancelled` - Cancelled
+    VendorTopProductsResponse:
+      type: object
+      properties:
+        product_name:
+          type: string
+        sku:
+          type: string
+        total_quantity:
+          type: integer
+        total_revenue:
+          type: string
+      required:
+      - product_name
+      - sku
+      - total_quantity
+      - total_revenue
     VerifyOTP:
       type: object
       description: Serializer for validating OTP code during account activation.

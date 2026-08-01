@@ -59,3 +59,18 @@ class EmailService:
             context=context,
             to_email=user.email,
         )
+
+    @classmethod
+    def send_email(cls, subject: str, to_email: str, template_name: str = "welcome", context: dict = None):
+        """Generic email dispatch method."""
+        if context is None:
+            context = {}
+        context.setdefault("app_name", "Ecommerce")
+        context.setdefault("year", datetime.datetime.now().year)
+        cls._send(
+            subject=subject,
+            template_name=template_name,
+            context=context,
+            to_email=to_email,
+        )
+
