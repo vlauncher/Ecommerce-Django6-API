@@ -1,5 +1,7 @@
 from django.contrib import admin
 from django.urls import path, include
+from django.conf import settings
+from django.conf.urls.static import static
 from drf_spectacular.views import (
     SpectacularAPIView,
     SpectacularRedocView,
@@ -15,6 +17,13 @@ urlpatterns = [
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     # Django Admin
     path("admin/", admin.site.urls),
-    # API v1 Auth Endpoints
+    # API v1 Endpoints
     path("api/v1/auth/", include("accounts.urls")),
+    path("api/v1/vendors/", include("vendors.urls")),
+    path("api/v1/catalog/", include("catalog.urls")),
+    path("api/v1/reviews/", include("reviews.urls")),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+

@@ -190,8 +190,1147 @@ paths:
               schema:
                 $ref: '#/components/schemas/VerifyOTP'
           description: ''
+  /api/v1/catalog/admin/categories/:
+    post:
+      operationId: catalog_admin_categories_create
+      description: Create a new root or child category (Admin only).
+      tags:
+      - Catalog - Admin Categories
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryDetailRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CategoryDetailRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CategoryDetailRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CategoryDetail'
+          description: ''
+  /api/v1/catalog/attribute-groups/:
+    get:
+      operationId: catalog_attribute_groups_list
+      description: List all attribute groups and their nested attributes/options.
+      tags:
+      - Catalog - Metadata
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AttributeGroup'
+          description: ''
+  /api/v1/catalog/categories/:
+    get:
+      operationId: catalog_categories_list
+      description: List root categories with their full subcategory tree.
+      tags:
+      - Catalog - Categories
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CategoryTree'
+          description: ''
+  /api/v1/catalog/categories/{slug}/:
+    get:
+      operationId: catalog_categories_retrieve
+      description: Get category details by slug.
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - Catalog - Categories
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CategoryDetail'
+          description: ''
+  /api/v1/catalog/product-types/:
+    get:
+      operationId: catalog_product_types_list
+      description: List all product types (e.g. T-Shirt, eBook, Smartphone).
+      tags:
+      - Catalog - Metadata
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProductType'
+          description: ''
+  /api/v1/catalog/products/:
+    get:
+      operationId: catalog_products_list
+      description: Public searchable & filterable product catalog.
+      parameters:
+      - in: query
+        name: category
+        schema:
+          type: string
+      - in: query
+        name: category_id
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: is_featured
+        schema:
+          type: boolean
+      - in: query
+        name: max_price
+        schema:
+          type: number
+      - in: query
+        name: min_price
+        schema:
+          type: number
+      - in: query
+        name: min_rating
+        schema:
+          type: number
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - in: query
+        name: product_type
+        schema:
+          type: string
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - in: query
+        name: status
+        schema:
+          type: string
+          enum:
+          - active
+          - archived
+          - draft
+          - inactive
+          - pending_review
+        description: |-
+          * `draft` - Draft
+          * `pending_review` - Pending Review
+          * `active` - Active
+          * `inactive` - Inactive
+          * `archived` - Archived
+      - in: query
+        name: vendor
+        schema:
+          type: string
+      tags:
+      - Catalog - Products
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedProductListList'
+          description: ''
+  /api/v1/catalog/products/{slug}/:
+    get:
+      operationId: catalog_products_retrieve
+      description: Public detailed product view with all variants, images, and attributes.
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - Catalog - Products
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductDetail'
+          description: ''
+  /api/v1/catalog/vendor/products/:
+    get:
+      operationId: catalog_vendor_products_list
+      description: 'Vendor dashboard: List vendor''s products or create a new product.'
+      parameters:
+      - in: query
+        name: category
+        schema:
+          type: string
+      - in: query
+        name: category_id
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: is_featured
+        schema:
+          type: boolean
+      - in: query
+        name: max_price
+        schema:
+          type: number
+      - in: query
+        name: min_price
+        schema:
+          type: number
+      - in: query
+        name: min_rating
+        schema:
+          type: number
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - in: query
+        name: product_type
+        schema:
+          type: string
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - in: query
+        name: status
+        schema:
+          type: string
+          enum:
+          - active
+          - archived
+          - draft
+          - inactive
+          - pending_review
+        description: |-
+          * `draft` - Draft
+          * `pending_review` - Pending Review
+          * `active` - Active
+          * `inactive` - Inactive
+          * `archived` - Archived
+      - in: query
+        name: vendor
+        schema:
+          type: string
+      tags:
+      - Catalog - Vendor Dashboard
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedProductListList'
+          description: ''
+    post:
+      operationId: catalog_vendor_products_create
+      description: 'Vendor dashboard: List vendor''s products or create a new product.'
+      tags:
+      - Catalog - Vendor Dashboard
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductCreateUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ProductCreateUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ProductCreateUpdateRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductCreateUpdate'
+          description: ''
+  /api/v1/catalog/vendor/products/{id}/:
+    get:
+      operationId: catalog_vendor_products_retrieve
+      description: 'Vendor dashboard: Manage single product.'
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Catalog - Vendor Dashboard
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductDetail'
+          description: ''
+    put:
+      operationId: catalog_vendor_products_update
+      description: 'Vendor dashboard: Manage single product.'
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Catalog - Vendor Dashboard
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductCreateUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ProductCreateUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ProductCreateUpdateRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductCreateUpdate'
+          description: ''
+    patch:
+      operationId: catalog_vendor_products_partial_update
+      description: 'Vendor dashboard: Manage single product.'
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Catalog - Vendor Dashboard
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedProductCreateUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedProductCreateUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedProductCreateUpdateRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductCreateUpdate'
+          description: ''
+    delete:
+      operationId: catalog_vendor_products_destroy
+      description: 'Vendor dashboard: Manage single product.'
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Catalog - Vendor Dashboard
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/catalog/vendor/products/{product_id}/images/:
+    post:
+      operationId: catalog_vendor_products_images_create
+      description: 'Vendor dashboard: Upload product image.'
+      parameters:
+      - in: path
+        name: product_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Catalog - Vendor Dashboard
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductImageRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ProductImageRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ProductImageRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductImage'
+          description: ''
+  /api/v1/catalog/vendor/products/{product_id}/variants/:
+    post:
+      operationId: catalog_vendor_products_variants_create
+      description: 'Vendor dashboard: Add a variant SKU to an existing product.'
+      parameters:
+      - in: path
+        name: product_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Catalog - Vendor Dashboard
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductVariantCreateUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ProductVariantCreateUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ProductVariantCreateUpdateRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductVariantCreateUpdate'
+          description: ''
+  /api/v1/catalog/vendor/variants/{id}/:
+    get:
+      operationId: catalog_vendor_variants_retrieve
+      description: 'Vendor dashboard: Update or delete a variant SKU.'
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Catalog - Vendor Dashboard
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductVariantCreateUpdate'
+          description: ''
+    put:
+      operationId: catalog_vendor_variants_update
+      description: 'Vendor dashboard: Update or delete a variant SKU.'
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Catalog - Vendor Dashboard
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductVariantCreateUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ProductVariantCreateUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ProductVariantCreateUpdateRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductVariantCreateUpdate'
+          description: ''
+    patch:
+      operationId: catalog_vendor_variants_partial_update
+      description: 'Vendor dashboard: Update or delete a variant SKU.'
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Catalog - Vendor Dashboard
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedProductVariantCreateUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedProductVariantCreateUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedProductVariantCreateUpdateRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductVariantCreateUpdate'
+          description: ''
+    delete:
+      operationId: catalog_vendor_variants_destroy
+      description: 'Vendor dashboard: Update or delete a variant SKU.'
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Catalog - Vendor Dashboard
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/reviews/{id}/:
+    get:
+      operationId: reviews_retrieve
+      description: Manage own review.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Reviews
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Review'
+          description: ''
+    put:
+      operationId: reviews_update
+      description: Manage own review.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Reviews
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReviewRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ReviewRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ReviewRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Review'
+          description: ''
+    patch:
+      operationId: reviews_partial_update
+      description: Manage own review.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Reviews
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedReviewRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedReviewRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedReviewRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Review'
+          description: ''
+    delete:
+      operationId: reviews_destroy
+      description: Manage own review.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Reviews
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/reviews/{id}/vote/:
+    post:
+      operationId: reviews_vote_create
+      description: Vote helpful/unhelpful on a review.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Reviews
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReviewVoteRequestRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ReviewVoteRequestRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ReviewVoteRequestRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewVoteResponse'
+          description: ''
+  /api/v1/reviews/product/{product_slug}/:
+    get:
+      operationId: reviews_product_list
+      description: List reviews for a product or submit a new review.
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - in: path
+        name: product_slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - Reviews
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedReviewList'
+          description: ''
+    post:
+      operationId: reviews_product_create
+      description: List reviews for a product or submit a new review.
+      parameters:
+      - in: path
+        name: product_slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - Reviews
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReviewRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ReviewRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ReviewRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Review'
+          description: ''
+  /api/v1/vendors/:
+    get:
+      operationId: vendors_list
+      description: Public directory of active marketplace vendors.
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      tags:
+      - Vendors
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedVendorPublicList'
+          description: ''
+  /api/v1/vendors/{slug}/:
+    get:
+      operationId: vendors_retrieve
+      description: Public vendor storefront details.
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - Vendors
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VendorPublic'
+          description: ''
+  /api/v1/vendors/me/:
+    get:
+      operationId: vendors_me_retrieve
+      description: Vendor's own profile management dashboard.
+      tags:
+      - Vendors
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VendorDetail'
+          description: ''
+    put:
+      operationId: vendors_me_update
+      description: Vendor's own profile management dashboard.
+      tags:
+      - Vendors
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VendorDetailRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/VendorDetailRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/VendorDetailRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VendorDetail'
+          description: ''
+    patch:
+      operationId: vendors_me_partial_update
+      description: Vendor's own profile management dashboard.
+      tags:
+      - Vendors
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedVendorDetailRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedVendorDetailRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedVendorDetailRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VendorDetail'
+          description: ''
+  /api/v1/vendors/register/:
+    post:
+      operationId: vendors_register_create
+      description: Register the authenticated user as a vendor.
+      tags:
+      - Vendors
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VendorRegistrationRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/VendorRegistrationRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/VendorRegistrationRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VendorRegistration'
+          description: ''
 components:
   schemas:
+    Attribute:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        group:
+          type: string
+          format: uuid
+        group_name:
+          type: string
+          readOnly: true
+        name:
+          type: string
+          maxLength: 255
+        slug:
+          type: string
+          maxLength: 255
+          pattern: ^[-a-zA-Z0-9_]+$
+        value_type:
+          $ref: '#/components/schemas/ValueTypeEnum'
+        is_filterable:
+          type: boolean
+          description: Show in faceted filters
+        is_required:
+          type: boolean
+        sort_order:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        options:
+          type: array
+          items:
+            $ref: '#/components/schemas/AttributeOption'
+          readOnly: true
+      required:
+      - group
+      - group_name
+      - id
+      - name
+      - options
+      - slug
+      - value_type
+    AttributeGroup:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          maxLength: 255
+        sort_order:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        attributes:
+          type: array
+          items:
+            $ref: '#/components/schemas/Attribute'
+          readOnly: true
+      required:
+      - attributes
+      - id
+      - name
+    AttributeOption:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        value:
+          type: string
+          maxLength: 255
+        color_hex:
+          type: string
+          description: 'Hex color code for COLOR type (e.g., #FF5733)'
+          maxLength: 7
+        sort_order:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+      required:
+      - id
+      - value
+    CategoryDetail:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          maxLength: 255
+        slug:
+          type: string
+          maxLength: 255
+          pattern: ^[-a-zA-Z0-9_]+$
+        description:
+          type: string
+        image:
+          type: string
+          format: uri
+          nullable: true
+        is_active:
+          type: boolean
+        meta_title:
+          type: string
+          maxLength: 255
+        meta_description:
+          type: string
+        full_path:
+          type: string
+          readOnly: true
+        ancestors:
+          type: object
+          additionalProperties: {}
+          readOnly: true
+      required:
+      - ancestors
+      - full_path
+      - id
+      - name
+      - slug
+    CategoryDetailRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        slug:
+          type: string
+          minLength: 1
+          maxLength: 255
+          pattern: ^[-a-zA-Z0-9_]+$
+        description:
+          type: string
+        image:
+          type: string
+          format: binary
+          nullable: true
+        is_active:
+          type: boolean
+        meta_title:
+          type: string
+          maxLength: 255
+        meta_description:
+          type: string
+      required:
+      - name
+      - slug
+    CategoryTree:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          maxLength: 255
+        slug:
+          type: string
+          maxLength: 255
+          pattern: ^[-a-zA-Z0-9_]+$
+        description:
+          type: string
+        image:
+          type: string
+          format: uri
+          nullable: true
+        full_path:
+          type: string
+          readOnly: true
+        children:
+          type: object
+          additionalProperties: {}
+          readOnly: true
+      required:
+      - children
+      - full_path
+      - id
+      - name
+      - slug
     EmailTokenObtainPairRequest:
       type: object
       description: Custom SimpleJWT token serializer using email instead of username.
@@ -226,6 +1365,868 @@ components:
           description: Google ID token obtained from Google Sign-In on client
       required:
       - id_token
+    KindEnum:
+      enum:
+      - physical
+      - digital
+      type: string
+      description: |-
+        * `physical` - Physical
+        * `digital` - Digital
+    PaginatedProductListList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductList'
+    PaginatedReviewList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Review'
+    PaginatedVendorPublicList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/VendorPublic'
+    PatchedProductCreateUpdateRequest:
+      type: object
+      properties:
+        product_type:
+          type: string
+          format: uuid
+        category:
+          type: string
+          format: uuid
+          nullable: true
+        name:
+          type: string
+          minLength: 1
+          maxLength: 500
+        description:
+          type: string
+        short_description:
+          type: string
+          maxLength: 500
+        status:
+          $ref: '#/components/schemas/Status016Enum'
+        is_featured:
+          type: boolean
+        meta_title:
+          type: string
+          maxLength: 255
+        meta_description:
+          type: string
+    PatchedProductVariantCreateUpdateRequest:
+      type: object
+      properties:
+        sku:
+          type: string
+          minLength: 1
+          maxLength: 100
+        barcode:
+          type: string
+          maxLength: 100
+        name:
+          type: string
+          description: Auto-generated from variant options if blank
+          maxLength: 255
+        price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        compare_at_price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          nullable: true
+          description: Original price before discount (strikethrough price)
+        cost_price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          nullable: true
+          description: Cost of goods sold (hidden from customers)
+        weight:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,5}(?:\.\d{0,3})?$
+          nullable: true
+          description: Weight in kg
+        length:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,6}(?:\.\d{0,2})?$
+          nullable: true
+        width:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,6}(?:\.\d{0,2})?$
+          nullable: true
+        height:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,6}(?:\.\d{0,2})?$
+          nullable: true
+        digital_file:
+          type: string
+          format: binary
+          nullable: true
+        download_limit:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          nullable: true
+          description: Max download count (null = unlimited)
+        download_expiry_days:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          nullable: true
+          description: Days until download link expires
+        is_active:
+          type: boolean
+        sort_order:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        attribute_values:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+          writeOnly: true
+    PatchedReviewRequest:
+      type: object
+      properties:
+        rating:
+          type: integer
+          maximum: 5
+          minimum: 1
+        title:
+          type: string
+          maxLength: 255
+        comment:
+          type: string
+    PatchedVendorDetailRequest:
+      type: object
+      properties:
+        store_name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        description:
+          type: string
+        logo:
+          type: string
+          format: binary
+          nullable: true
+        banner:
+          type: string
+          format: binary
+          nullable: true
+        business_email:
+          type: string
+          format: email
+          minLength: 1
+          maxLength: 254
+        phone_number:
+          type: string
+          maxLength: 30
+        business_address:
+          type: string
+        tax_id:
+          type: string
+          maxLength: 50
+        bank_name:
+          type: string
+          maxLength: 255
+        bank_account_number:
+          type: string
+          maxLength: 50
+        bank_routing_number:
+          type: string
+          maxLength: 50
+    ProductAttributeValue:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        attribute:
+          type: string
+          format: uuid
+        attribute_name:
+          type: string
+          readOnly: true
+        attribute_option:
+          type: string
+          format: uuid
+          nullable: true
+        option_value:
+          type: string
+          readOnly: true
+        value_text:
+          type: string
+        value_integer:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+          nullable: true
+        value_decimal:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,4})?$
+          nullable: true
+        value_boolean:
+          type: boolean
+          nullable: true
+      required:
+      - attribute
+      - attribute_name
+      - id
+      - option_value
+    ProductCreateUpdate:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        product_type:
+          type: string
+          format: uuid
+        category:
+          type: string
+          format: uuid
+          nullable: true
+        name:
+          type: string
+          maxLength: 500
+        description:
+          type: string
+        short_description:
+          type: string
+          maxLength: 500
+        status:
+          $ref: '#/components/schemas/Status016Enum'
+        is_featured:
+          type: boolean
+        meta_title:
+          type: string
+          maxLength: 255
+        meta_description:
+          type: string
+      required:
+      - id
+      - name
+      - product_type
+    ProductCreateUpdateRequest:
+      type: object
+      properties:
+        product_type:
+          type: string
+          format: uuid
+        category:
+          type: string
+          format: uuid
+          nullable: true
+        name:
+          type: string
+          minLength: 1
+          maxLength: 500
+        description:
+          type: string
+        short_description:
+          type: string
+          maxLength: 500
+        status:
+          $ref: '#/components/schemas/Status016Enum'
+        is_featured:
+          type: boolean
+        meta_title:
+          type: string
+          maxLength: 255
+        meta_description:
+          type: string
+      required:
+      - name
+      - product_type
+    ProductDetail:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          maxLength: 500
+        slug:
+          type: string
+          maxLength: 500
+          pattern: ^[-a-zA-Z0-9_]+$
+        description:
+          type: string
+        short_description:
+          type: string
+          maxLength: 500
+        status:
+          $ref: '#/components/schemas/Status016Enum'
+        is_featured:
+          type: boolean
+        min_price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          nullable: true
+          description: Lowest variant price (auto-computed)
+        max_price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          nullable: true
+          description: Highest variant price (auto-computed)
+        meta_title:
+          type: string
+          maxLength: 255
+        meta_description:
+          type: string
+        average_rating:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,1}(?:\.\d{0,2})?$
+        review_count:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        total_sold:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        vendor:
+          allOf:
+          - $ref: '#/components/schemas/VendorPublic'
+          readOnly: true
+        category:
+          allOf:
+          - $ref: '#/components/schemas/CategoryDetail'
+          readOnly: true
+        product_type:
+          allOf:
+          - $ref: '#/components/schemas/ProductType'
+          readOnly: true
+        variants:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductVariant'
+          readOnly: true
+        images:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductImage'
+          readOnly: true
+        attribute_values:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductAttributeValue'
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        published_at:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+      - attribute_values
+      - category
+      - created_at
+      - id
+      - images
+      - name
+      - product_type
+      - slug
+      - updated_at
+      - variants
+      - vendor
+    ProductImage:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        image:
+          type: string
+          format: uri
+        alt_text:
+          type: string
+          maxLength: 255
+        is_primary:
+          type: boolean
+        variant:
+          type: string
+          format: uuid
+          nullable: true
+        sort_order:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+      required:
+      - id
+      - image
+    ProductImageRequest:
+      type: object
+      properties:
+        image:
+          type: string
+          format: binary
+        alt_text:
+          type: string
+          maxLength: 255
+        is_primary:
+          type: boolean
+        variant:
+          type: string
+          format: uuid
+          nullable: true
+        sort_order:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+      required:
+      - image
+    ProductList:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          maxLength: 500
+        slug:
+          type: string
+          maxLength: 500
+          pattern: ^[-a-zA-Z0-9_]+$
+        short_description:
+          type: string
+          maxLength: 500
+        status:
+          $ref: '#/components/schemas/Status016Enum'
+        is_featured:
+          type: boolean
+        min_price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          nullable: true
+          description: Lowest variant price (auto-computed)
+        max_price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          nullable: true
+          description: Highest variant price (auto-computed)
+        average_rating:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,1}(?:\.\d{0,2})?$
+        review_count:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        total_sold:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        vendor:
+          allOf:
+          - $ref: '#/components/schemas/VendorPublic'
+          readOnly: true
+        category_name:
+          type: string
+          readOnly: true
+        primary_image:
+          allOf:
+          - $ref: '#/components/schemas/ProductImage'
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - category_name
+      - created_at
+      - id
+      - name
+      - primary_image
+      - slug
+      - vendor
+    ProductType:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          maxLength: 255
+        slug:
+          type: string
+          maxLength: 255
+          pattern: ^[-a-zA-Z0-9_]+$
+        kind:
+          $ref: '#/components/schemas/KindEnum'
+        requires_shipping:
+          type: boolean
+        is_digital:
+          type: boolean
+        attribute_groups:
+          type: array
+          items:
+            $ref: '#/components/schemas/AttributeGroup'
+          readOnly: true
+        variation_attributes:
+          type: array
+          items:
+            $ref: '#/components/schemas/Attribute'
+          readOnly: true
+      required:
+      - attribute_groups
+      - id
+      - name
+      - slug
+      - variation_attributes
+    ProductVariant:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        sku:
+          type: string
+          maxLength: 100
+        barcode:
+          type: string
+          maxLength: 100
+        name:
+          type: string
+          description: Auto-generated from variant options if blank
+          maxLength: 255
+        price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        compare_at_price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          nullable: true
+          description: Original price before discount (strikethrough price)
+        weight:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,5}(?:\.\d{0,3})?$
+          nullable: true
+          description: Weight in kg
+        length:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,6}(?:\.\d{0,2})?$
+          nullable: true
+        width:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,6}(?:\.\d{0,2})?$
+          nullable: true
+        height:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,6}(?:\.\d{0,2})?$
+          nullable: true
+        digital_file:
+          type: string
+          format: uri
+          nullable: true
+        download_limit:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          nullable: true
+          description: Max download count (null = unlimited)
+        download_expiry_days:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          nullable: true
+          description: Days until download link expires
+        is_active:
+          type: boolean
+        sort_order:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        attribute_values:
+          type: array
+          items:
+            $ref: '#/components/schemas/VariantAttributeValue'
+          readOnly: true
+        images:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductImage'
+          readOnly: true
+      required:
+      - attribute_values
+      - id
+      - images
+      - price
+      - sku
+    ProductVariantCreateUpdate:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        sku:
+          type: string
+          maxLength: 100
+        barcode:
+          type: string
+          maxLength: 100
+        name:
+          type: string
+          description: Auto-generated from variant options if blank
+          maxLength: 255
+        price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        compare_at_price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          nullable: true
+          description: Original price before discount (strikethrough price)
+        cost_price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          nullable: true
+          description: Cost of goods sold (hidden from customers)
+        weight:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,5}(?:\.\d{0,3})?$
+          nullable: true
+          description: Weight in kg
+        length:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,6}(?:\.\d{0,2})?$
+          nullable: true
+        width:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,6}(?:\.\d{0,2})?$
+          nullable: true
+        height:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,6}(?:\.\d{0,2})?$
+          nullable: true
+        digital_file:
+          type: string
+          format: uri
+          nullable: true
+        download_limit:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          nullable: true
+          description: Max download count (null = unlimited)
+        download_expiry_days:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          nullable: true
+          description: Days until download link expires
+        is_active:
+          type: boolean
+        sort_order:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+      required:
+      - id
+      - price
+      - sku
+    ProductVariantCreateUpdateRequest:
+      type: object
+      properties:
+        sku:
+          type: string
+          minLength: 1
+          maxLength: 100
+        barcode:
+          type: string
+          maxLength: 100
+        name:
+          type: string
+          description: Auto-generated from variant options if blank
+          maxLength: 255
+        price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        compare_at_price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          nullable: true
+          description: Original price before discount (strikethrough price)
+        cost_price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          nullable: true
+          description: Cost of goods sold (hidden from customers)
+        weight:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,5}(?:\.\d{0,3})?$
+          nullable: true
+          description: Weight in kg
+        length:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,6}(?:\.\d{0,2})?$
+          nullable: true
+        width:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,6}(?:\.\d{0,2})?$
+          nullable: true
+        height:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,6}(?:\.\d{0,2})?$
+          nullable: true
+        digital_file:
+          type: string
+          format: binary
+          nullable: true
+        download_limit:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          nullable: true
+          description: Max download count (null = unlimited)
+        download_expiry_days:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          nullable: true
+          description: Days until download link expires
+        is_active:
+          type: boolean
+        sort_order:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        attribute_values:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+          writeOnly: true
+      required:
+      - price
+      - sku
     Register:
       type: object
       description: Serializer for user registration.
@@ -294,6 +2295,95 @@ components:
           minLength: 1
       required:
       - email
+    Review:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        product:
+          type: string
+          format: uuid
+          readOnly: true
+        rating:
+          type: integer
+          maximum: 5
+          minimum: 1
+        title:
+          type: string
+          maxLength: 255
+        comment:
+          type: string
+        is_verified_buyer:
+          type: boolean
+          readOnly: true
+        helpful_count:
+          type: integer
+          readOnly: true
+        unhelpful_count:
+          type: integer
+          readOnly: true
+        user_name:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - helpful_count
+      - id
+      - is_verified_buyer
+      - product
+      - rating
+      - unhelpful_count
+      - user_name
+    ReviewRequest:
+      type: object
+      properties:
+        rating:
+          type: integer
+          maximum: 5
+          minimum: 1
+        title:
+          type: string
+          maxLength: 255
+        comment:
+          type: string
+      required:
+      - rating
+    ReviewVoteRequestRequest:
+      type: object
+      properties:
+        is_helpful:
+          type: boolean
+          default: true
+    ReviewVoteResponse:
+      type: object
+      properties:
+        helpful_count:
+          type: integer
+        unhelpful_count:
+          type: integer
+      required:
+      - helpful_count
+      - unhelpful_count
+    Status016Enum:
+      enum:
+      - draft
+      - pending_review
+      - active
+      - inactive
+      - archived
+      type: string
+      description: |-
+        * `draft` - Draft
+        * `pending_review` - Pending Review
+        * `active` - Active
+        * `inactive` - Inactive
+        * `archived` - Archived
     TokenRefresh:
       type: object
       properties:
@@ -348,6 +2438,299 @@ components:
       - id
       - is_active
       - last_name
+    ValueTypeEnum:
+      enum:
+      - text
+      - integer
+      - decimal
+      - boolean
+      - select
+      - multi_select
+      - color
+      type: string
+      description: |-
+        * `text` - Text
+        * `integer` - Integer
+        * `decimal` - Decimal
+        * `boolean` - Boolean
+        * `select` - Single Select
+        * `multi_select` - Multi Select
+        * `color` - Color (Hex)
+    VariantAttributeValue:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        attribute:
+          type: string
+          format: uuid
+        attribute_name:
+          type: string
+          readOnly: true
+        attribute_option:
+          type: string
+          format: uuid
+          nullable: true
+        option_value:
+          type: string
+          readOnly: true
+        color_hex:
+          type: string
+          readOnly: true
+        value_text:
+          type: string
+          maxLength: 500
+      required:
+      - attribute
+      - attribute_name
+      - color_hex
+      - id
+      - option_value
+    VendorDetail:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        store_name:
+          type: string
+          maxLength: 255
+        slug:
+          type: string
+          readOnly: true
+          pattern: ^[-a-zA-Z0-9_]+$
+        description:
+          type: string
+        logo:
+          type: string
+          format: uri
+          nullable: true
+        banner:
+          type: string
+          format: uri
+          nullable: true
+        business_email:
+          type: string
+          format: email
+          maxLength: 254
+        phone_number:
+          type: string
+          maxLength: 30
+        business_address:
+          type: string
+        tax_id:
+          type: string
+          maxLength: 50
+        status:
+          allOf:
+          - $ref: '#/components/schemas/VendorDetailStatusEnum'
+          readOnly: true
+        commission_rate:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
+          readOnly: true
+          description: Platform commission percentage (e.g., 10.00 = 10%)
+        is_verified:
+          type: boolean
+          readOnly: true
+        bank_name:
+          type: string
+          maxLength: 255
+        bank_account_number:
+          type: string
+          maxLength: 50
+        bank_routing_number:
+          type: string
+          maxLength: 50
+        owner_email:
+          type: string
+          readOnly: true
+        owner_name:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - business_email
+      - commission_rate
+      - created_at
+      - id
+      - is_verified
+      - owner_email
+      - owner_name
+      - slug
+      - status
+      - store_name
+      - updated_at
+    VendorDetailRequest:
+      type: object
+      properties:
+        store_name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        description:
+          type: string
+        logo:
+          type: string
+          format: binary
+          nullable: true
+        banner:
+          type: string
+          format: binary
+          nullable: true
+        business_email:
+          type: string
+          format: email
+          minLength: 1
+          maxLength: 254
+        phone_number:
+          type: string
+          maxLength: 30
+        business_address:
+          type: string
+        tax_id:
+          type: string
+          maxLength: 50
+        bank_name:
+          type: string
+          maxLength: 255
+        bank_account_number:
+          type: string
+          maxLength: 50
+        bank_routing_number:
+          type: string
+          maxLength: 50
+      required:
+      - business_email
+      - store_name
+    VendorDetailStatusEnum:
+      enum:
+      - pending
+      - active
+      - suspended
+      - closed
+      type: string
+      description: |-
+        * `pending` - Pending Approval
+        * `active` - Active
+        * `suspended` - Suspended
+        * `closed` - Closed
+    VendorPublic:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        store_name:
+          type: string
+          maxLength: 255
+        slug:
+          type: string
+          maxLength: 255
+          pattern: ^[-a-zA-Z0-9_]+$
+        description:
+          type: string
+        logo:
+          type: string
+          format: uri
+          nullable: true
+        banner:
+          type: string
+          format: uri
+          nullable: true
+        is_verified:
+          type: boolean
+        owner_name:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - owner_name
+      - slug
+      - store_name
+    VendorRegistration:
+      type: object
+      properties:
+        store_name:
+          type: string
+          maxLength: 255
+        description:
+          type: string
+        business_email:
+          type: string
+          format: email
+          maxLength: 254
+        phone_number:
+          type: string
+          maxLength: 30
+        business_address:
+          type: string
+        tax_id:
+          type: string
+          maxLength: 50
+        bank_name:
+          type: string
+          maxLength: 255
+        bank_account_number:
+          type: string
+          maxLength: 50
+        bank_routing_number:
+          type: string
+          maxLength: 50
+      required:
+      - business_email
+      - store_name
+    VendorRegistrationRequest:
+      type: object
+      properties:
+        store_name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        description:
+          type: string
+        business_email:
+          type: string
+          format: email
+          minLength: 1
+          maxLength: 254
+        phone_number:
+          type: string
+          maxLength: 30
+        business_address:
+          type: string
+        tax_id:
+          type: string
+          maxLength: 50
+        bank_name:
+          type: string
+          maxLength: 255
+        bank_account_number:
+          type: string
+          maxLength: 50
+        bank_routing_number:
+          type: string
+          maxLength: 50
+      required:
+      - business_email
+      - store_name
     VerifyOTP:
       type: object
       description: Serializer for validating OTP code during account activation.
