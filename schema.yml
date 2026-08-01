@@ -982,6 +982,133 @@ paths:
       responses:
         '204':
           description: No response body
+  /api/v1/inventory/admin/warehouses/:
+    get:
+      operationId: inventory_admin_warehouses_list
+      description: Manage fulfillment warehouses (Admin only).
+      tags:
+      - Inventory - Admin Warehouses
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Warehouse'
+          description: ''
+    post:
+      operationId: inventory_admin_warehouses_create
+      description: Manage fulfillment warehouses (Admin only).
+      tags:
+      - Inventory - Admin Warehouses
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WarehouseRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/WarehouseRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/WarehouseRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Warehouse'
+          description: ''
+  /api/v1/inventory/vendor/adjust/:
+    post:
+      operationId: inventory_vendor_adjust_create
+      description: 'Vendor dashboard: Manually adjust stock count (e.g. new shipment
+        or loss).'
+      tags:
+      - Inventory - Vendor Dashboard
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StockAdjustmentRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/StockAdjustmentRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/StockAdjustmentRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StockAdjustment'
+          description: ''
+  /api/v1/inventory/vendor/movements/:
+    get:
+      operationId: inventory_vendor_movements_list
+      description: 'Vendor dashboard: View stock movement audit trail.'
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      tags:
+      - Inventory - Vendor Dashboard
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedStockMovementList'
+          description: ''
+  /api/v1/inventory/vendor/stock/:
+    get:
+      operationId: inventory_vendor_stock_list
+      description: 'Vendor dashboard: List vendor''s variant stock levels.'
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      tags:
+      - Inventory - Vendor Dashboard
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedStockRecordList'
+          description: ''
   /api/v1/orders/:
     get:
       operationId: orders_list
@@ -1336,6 +1463,107 @@ paths:
               schema:
                 $ref: '#/components/schemas/WebhookResponse'
           description: ''
+  /api/v1/promotions/apply-coupon/:
+    post:
+      operationId: promotions_apply_coupon_create
+      description: Validate and calculate discount for a coupon code against current
+        cart.
+      tags:
+      - Promotions
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApplyCouponRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ApplyCouponRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ApplyCouponRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplyCoupon'
+          description: ''
+  /api/v1/promotions/flash-sales/:
+    get:
+      operationId: promotions_flash_sales_list
+      description: List currently active flash sales.
+      tags:
+      - Promotions
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FlashSale'
+          description: ''
+  /api/v1/promotions/vendor/coupons/:
+    get:
+      operationId: promotions_vendor_coupons_list
+      description: 'Vendor dashboard: Manage promotional discount coupons.'
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      tags:
+      - Promotions - Vendor Dashboard
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedCouponList'
+          description: ''
+    post:
+      operationId: promotions_vendor_coupons_create
+      description: 'Vendor dashboard: Manage promotional discount coupons.'
+      tags:
+      - Promotions - Vendor Dashboard
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CouponRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CouponRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CouponRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Coupon'
+          description: ''
   /api/v1/reviews/{id}/:
     get:
       operationId: reviews_retrieve
@@ -1539,6 +1767,94 @@ paths:
               schema:
                 $ref: '#/components/schemas/Review'
           description: ''
+  /api/v1/shipping/admin/zones/:
+    get:
+      operationId: shipping_admin_zones_list
+      description: Manage geographic shipping zones (Admin only).
+      tags:
+      - Shipping - Admin
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ShippingZone'
+          description: ''
+    post:
+      operationId: shipping_admin_zones_create
+      description: Manage geographic shipping zones (Admin only).
+      tags:
+      - Shipping - Admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShippingZoneRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ShippingZoneRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ShippingZoneRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShippingZone'
+          description: ''
+  /api/v1/shipping/methods/:
+    get:
+      operationId: shipping_methods_list
+      description: List available shipping methods for a given country code.
+      tags:
+      - Shipping
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ShippingMethod'
+          description: ''
+  /api/v1/shipping/vendor/fulfillments/:
+    post:
+      operationId: shipping_vendor_fulfillments_create
+      description: 'Vendor dashboard: Create shipment tracking fulfillment for sub-order.'
+      tags:
+      - Shipping - Vendor Dashboard
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FulfillmentRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FulfillmentRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FulfillmentRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Fulfillment'
+          description: ''
   /api/v1/vendors/:
     get:
       operationId: vendors_list
@@ -1685,6 +2001,21 @@ paths:
           description: ''
 components:
   schemas:
+    ApplyCoupon:
+      type: object
+      properties:
+        code:
+          type: string
+      required:
+      - code
+    ApplyCouponRequest:
+      type: object
+      properties:
+        code:
+          type: string
+          minLength: 1
+      required:
+      - code
     Attribute:
       type: object
       properties:
@@ -1997,6 +2328,128 @@ components:
       required:
       - billing_address
       - shipping_address
+    Coupon:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        code:
+          type: string
+          maxLength: 50
+        discount_type:
+          $ref: '#/components/schemas/DiscountTypeEnum'
+        value:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          description: Percentage (e.g. 15.00 for 15%) or Fixed Amount ($10.00)
+        min_order_value:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        max_discount_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          nullable: true
+          description: Cap for percentage discounts (null = uncapped)
+        usage_limit_total:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          nullable: true
+        usage_limit_per_user:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        times_used:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        valid_from:
+          type: string
+          format: date-time
+        valid_to:
+          type: string
+          format: date-time
+          nullable: true
+        is_active:
+          type: boolean
+        is_valid:
+          type: boolean
+          readOnly: true
+      required:
+      - code
+      - id
+      - is_valid
+      - value
+    CouponRequest:
+      type: object
+      properties:
+        code:
+          type: string
+          minLength: 1
+          maxLength: 50
+        discount_type:
+          $ref: '#/components/schemas/DiscountTypeEnum'
+        value:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          description: Percentage (e.g. 15.00 for 15%) or Fixed Amount ($10.00)
+        min_order_value:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        max_discount_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          nullable: true
+          description: Cap for percentage discounts (null = uncapped)
+        usage_limit_total:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          nullable: true
+        usage_limit_per_user:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        times_used:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        valid_from:
+          type: string
+          format: date-time
+        valid_to:
+          type: string
+          format: date-time
+          nullable: true
+        is_active:
+          type: boolean
+      required:
+      - code
+      - value
+    DiscountTypeEnum:
+      enum:
+      - percentage
+      - fixed_amount
+      - free_shipping
+      type: string
+      description: |-
+        * `percentage` - Percentage Discount
+        * `fixed_amount` - Fixed Amount Discount
+        * `free_shipping` - Free Shipping
     EmailTokenObtainPairRequest:
       type: object
       description: Custom SimpleJWT token serializer using email instead of username.
@@ -2012,6 +2465,139 @@ components:
       required:
       - email
       - password
+    FlashSale:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        title:
+          type: string
+          maxLength: 255
+        discount_percentage:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
+        products:
+          type: array
+          items:
+            type: string
+            format: uuid
+        start_time:
+          type: string
+          format: date-time
+        end_time:
+          type: string
+          format: date-time
+        is_active:
+          type: boolean
+        is_currently_active:
+          type: boolean
+          readOnly: true
+      required:
+      - discount_percentage
+      - end_time
+      - id
+      - is_currently_active
+      - products
+      - start_time
+      - title
+    Fulfillment:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        sub_order:
+          type: string
+          format: uuid
+        warehouse:
+          type: string
+          format: uuid
+        carrier:
+          type: string
+          description: Carrier name, e.g. "FedEx", "DHL", "UPS"
+          maxLength: 100
+        tracking_number:
+          type: string
+          maxLength: 100
+        tracking_url:
+          oneOf:
+          - type: string
+            format: uri
+            maxLength: 200
+          - type: string
+            maxLength: 0
+        status:
+          $ref: '#/components/schemas/FulfillmentStatusEnum'
+        shipped_at:
+          type: string
+          format: date-time
+          nullable: true
+        delivered_at:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+      - carrier
+      - id
+      - sub_order
+      - tracking_number
+      - warehouse
+    FulfillmentRequest:
+      type: object
+      properties:
+        sub_order:
+          type: string
+          format: uuid
+        warehouse:
+          type: string
+          format: uuid
+        carrier:
+          type: string
+          minLength: 1
+          description: Carrier name, e.g. "FedEx", "DHL", "UPS"
+          maxLength: 100
+        tracking_number:
+          type: string
+          minLength: 1
+          maxLength: 100
+        tracking_url:
+          oneOf:
+          - type: string
+            format: uri
+            maxLength: 200
+          - type: string
+            maxLength: 0
+        status:
+          $ref: '#/components/schemas/FulfillmentStatusEnum'
+        shipped_at:
+          type: string
+          format: date-time
+          nullable: true
+        delivered_at:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+      - carrier
+      - sub_order
+      - tracking_number
+      - warehouse
+    FulfillmentStatusEnum:
+      enum:
+      - preparing
+      - dispatched
+      - delivered
+      - failed
+      type: string
+      description: |-
+        * `preparing` - Preparing Package
+        * `dispatched` - Dispatched / In Transit
+        * `delivered` - Delivered
+        * `failed` - Delivery Failed
     GatewayEnum:
       enum:
       - stripe
@@ -2049,6 +2635,24 @@ components:
       description: |-
         * `physical` - Physical
         * `digital` - Digital
+    MovementTypeEnum:
+      enum:
+      - purchase_receipt
+      - customer_order
+      - reservation_hold
+      - reservation_release
+      - return_restock
+      - manual_adjustment
+      - damage_loss
+      type: string
+      description: |-
+        * `purchase_receipt` - Purchase Receipt
+        * `customer_order` - Customer Order
+        * `reservation_hold` - Reservation Hold
+        * `reservation_release` - Reservation Release
+        * `return_restock` - Return Restock
+        * `manual_adjustment` - Manual Adjustment
+        * `damage_loss` - Damage / Loss
     OrderDetail:
       type: object
       properties:
@@ -2354,6 +2958,29 @@ components:
       required:
       - from_status
       - to_status
+    PaginatedCouponList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Coupon'
     PaginatedOrderListList:
       type: object
       required:
@@ -2446,6 +3073,52 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Review'
+    PaginatedStockMovementList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/StockMovement'
+    PaginatedStockRecordList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/StockRecord'
     PaginatedVendorPublicList:
       type: object
       required:
@@ -3457,6 +4130,16 @@ components:
       required:
       - price
       - sku
+    RateTypeEnum:
+      enum:
+      - flat_rate
+      - weight_based
+      - price_based
+      type: string
+      description: |-
+        * `flat_rate` - Flat Rate
+        * `weight_based` - Weight-Based Tier
+        * `price_based` - Price-Based Tier
     Register:
       type: object
       description: Serializer for user registration.
@@ -3679,6 +4362,112 @@ components:
       - created_at
       - id
       - variant
+    ShippingMethod:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        zone:
+          type: string
+          format: uuid
+        zone_name:
+          type: string
+          readOnly: true
+        name:
+          type: string
+          maxLength: 255
+        rate_type:
+          $ref: '#/components/schemas/RateTypeEnum'
+        base_rate:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        free_shipping_threshold:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          nullable: true
+        estimated_days:
+          type: string
+          description: Estimated delivery window, e.g. "3-5 business days"
+          maxLength: 50
+        is_active:
+          type: boolean
+      required:
+      - base_rate
+      - id
+      - name
+      - zone
+      - zone_name
+    ShippingMethodRequest:
+      type: object
+      properties:
+        zone:
+          type: string
+          format: uuid
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        rate_type:
+          $ref: '#/components/schemas/RateTypeEnum'
+        base_rate:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        free_shipping_threshold:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          nullable: true
+        estimated_days:
+          type: string
+          description: Estimated delivery window, e.g. "3-5 business days"
+          maxLength: 50
+        is_active:
+          type: boolean
+      required:
+      - base_rate
+      - name
+      - zone
+    ShippingZone:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          maxLength: 255
+        countries:
+          description: List of ISO country codes, e.g. ["US", "CA", "GB"]
+        is_active:
+          type: boolean
+        methods:
+          type: array
+          items:
+            $ref: '#/components/schemas/ShippingMethod'
+          readOnly: true
+      required:
+      - id
+      - methods
+      - name
+    ShippingZoneRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        countries:
+          description: List of ISO country codes, e.g. ["US", "CA", "GB"]
+        is_active:
+          type: boolean
+      required:
+      - name
     Status016Enum:
       enum:
       - draft
@@ -3715,6 +4504,129 @@ components:
         * `delivered` - Delivered
         * `cancelled` - Cancelled
         * `refunded` - Refunded
+    StockAdjustment:
+      type: object
+      properties:
+        variant_id:
+          type: string
+          format: uuid
+        warehouse_id:
+          type: string
+          format: uuid
+        quantity_delta:
+          type: integer
+        notes:
+          type: string
+      required:
+      - quantity_delta
+      - variant_id
+      - warehouse_id
+    StockAdjustmentRequest:
+      type: object
+      properties:
+        variant_id:
+          type: string
+          format: uuid
+        warehouse_id:
+          type: string
+          format: uuid
+        quantity_delta:
+          type: integer
+        notes:
+          type: string
+      required:
+      - quantity_delta
+      - variant_id
+      - warehouse_id
+    StockMovement:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        variant:
+          type: string
+          format: uuid
+        warehouse:
+          type: string
+          format: uuid
+        movement_type:
+          $ref: '#/components/schemas/MovementTypeEnum'
+        quantity_delta:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+        reference_id:
+          type: string
+          maxLength: 255
+        performed_by_email:
+          type: string
+          readOnly: true
+        notes:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - movement_type
+      - performed_by_email
+      - quantity_delta
+      - variant
+      - warehouse
+    StockRecord:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        variant:
+          type: string
+          format: uuid
+        sku:
+          type: string
+          readOnly: true
+        warehouse:
+          type: string
+          format: uuid
+        warehouse_name:
+          type: string
+          readOnly: true
+        quantity:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        reserved:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        available_quantity:
+          type: integer
+          readOnly: true
+        low_stock_threshold:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - available_quantity
+      - id
+      - sku
+      - updated_at
+      - variant
+      - warehouse
+      - warehouse_name
     TokenRefresh:
       type: object
       properties:
@@ -4228,6 +5140,50 @@ components:
       required:
       - email
       - otp
+    Warehouse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          maxLength: 255
+        code:
+          type: string
+          maxLength: 50
+        address:
+          type: string
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - code
+      - created_at
+      - id
+      - name
+    WarehouseRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        code:
+          type: string
+          minLength: 1
+          maxLength: 50
+        address:
+          type: string
+        is_active:
+          type: boolean
+      required:
+      - code
+      - name
     WebhookResponse:
       type: object
       properties:
