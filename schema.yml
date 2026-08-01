@@ -108,10 +108,63 @@ paths:
   /api/v1/auth/me/:
     get:
       operationId: auth_me_retrieve
-      description: Retrieves the current authenticated user's profile details.
-      summary: Get Authenticated User Profile
+      description: Retrieves or updates the current authenticated user's profile details.
+      summary: Get or Update Authenticated User Profile
       tags:
       - Authentication
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+    put:
+      operationId: auth_me_update
+      description: Retrieves or updates the current authenticated user's profile details.
+      summary: Get or Update Authenticated User Profile
+      tags:
+      - Authentication
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+    patch:
+      operationId: auth_me_partial_update
+      description: Retrieves or updates the current authenticated user's profile details.
+      summary: Get or Update Authenticated User Profile
+      tags:
+      - Authentication
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedUserRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedUserRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedUserRequest'
       security:
       - jwtAuth: []
       responses:
@@ -2792,6 +2845,18 @@ components:
         * `stripe` - Stripe
         * `paypal` - PayPal
         * `flutterwave` - Flutterwave
+    GenderEnum:
+      enum:
+      - male
+      - female
+      - other
+      - prefer_not_to_say
+      type: string
+      description: |-
+        * `male` - Male
+        * `female` - Female
+        * `other` - Other
+        * `prefer_not_to_say` - Prefer Not To Say
     GoogleAuth:
       type: object
       description: Serializer for Google OAuth token exchange.
@@ -3534,6 +3599,41 @@ components:
           maxLength: 255
         comment:
           type: string
+    PatchedUserRequest:
+      type: object
+      description: Serializer for reading and updating user profile data.
+      properties:
+        first_name:
+          type: string
+          minLength: 1
+          maxLength: 150
+        last_name:
+          type: string
+          minLength: 1
+          maxLength: 150
+        phone_number:
+          type: string
+          nullable: true
+          maxLength: 30
+        bio:
+          type: string
+          nullable: true
+        gender:
+          $ref: '#/components/schemas/GenderEnum'
+        age:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          nullable: true
+        profile_picture:
+          nullable: true
+          oneOf:
+          - type: string
+            format: uri
+            maxLength: 200
+          - type: string
+            maxLength: 0
     PatchedVendorDetailRequest:
       type: object
       properties:
@@ -4905,7 +5005,7 @@ components:
       - refresh
     User:
       type: object
-      description: Serializer for reading user profile data.
+      description: Serializer for reading and updating user profile data.
       properties:
         id:
           type: integer
@@ -4916,13 +5016,36 @@ components:
           readOnly: true
         first_name:
           type: string
-          readOnly: true
+          maxLength: 150
         last_name:
           type: string
-          readOnly: true
+          maxLength: 150
         full_name:
           type: string
           readOnly: true
+        phone_number:
+          type: string
+          nullable: true
+          maxLength: 30
+        bio:
+          type: string
+          nullable: true
+        gender:
+          $ref: '#/components/schemas/GenderEnum'
+        age:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          nullable: true
+        profile_picture:
+          nullable: true
+          oneOf:
+          - type: string
+            format: uri
+            maxLength: 200
+          - type: string
+            maxLength: 0
         is_active:
           type: boolean
           readOnly: true
@@ -4937,6 +5060,44 @@ components:
       - full_name
       - id
       - is_active
+      - last_name
+    UserRequest:
+      type: object
+      description: Serializer for reading and updating user profile data.
+      properties:
+        first_name:
+          type: string
+          minLength: 1
+          maxLength: 150
+        last_name:
+          type: string
+          minLength: 1
+          maxLength: 150
+        phone_number:
+          type: string
+          nullable: true
+          maxLength: 30
+        bio:
+          type: string
+          nullable: true
+        gender:
+          $ref: '#/components/schemas/GenderEnum'
+        age:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          nullable: true
+        profile_picture:
+          nullable: true
+          oneOf:
+          - type: string
+            format: uri
+            maxLength: 200
+          - type: string
+            maxLength: 0
+      required:
+      - first_name
       - last_name
     ValueTypeEnum:
       enum:

@@ -27,7 +27,14 @@ class RegisterSerializer(serializers.ModelSerializer):
 class VerifyOTPSerializer(serializers.Serializer):
     """Serializer for validating OTP code during account activation."""
     email = serializers.EmailField()
-    otp = serializers.CharField(max_length=6, min_length=6)
+    code = serializers.CharField(max_length=6, min_length=6, required=False)
+    otp = serializers.CharField(max_length=6, min_length=6, required=False)
+
+    def validate(self, attrs):
+        if not attrs.get("code") and not attrs.get("otp"):
+            raise serializers.ValidationError({"code": "Verification code is required."})
+        return attrs
+
 
 
 class ResendOTPSerializer(serializers.Serializer):
@@ -54,14 +61,28 @@ class EmailTokenObtainPairSerializer(TokenObtainPairSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
-    """Serializer for reading user profile data."""
+    """Serializer for reading and updating user profile data."""
     full_name = serializers.SerializerMethodField()
 
     class Meta:
         model = User
-        fields = ("id", "email", "first_name", "last_name", "full_name", "is_active", "date_joined")
-        read_only_fields = fields
+        fields = (
+            "id",
+            "email",
+            "first_name",
+            "last_name",
+            "full_name",
+            "phone_number",
+            "bio",
+            "gender",
+            "age",
+            "profile_picture",
+            "is_active",
+            "date_joined",
+        )
+        read_only_fields = ("id", "email", "full_name", "is_active", "date_joined")
 
     @extend_schema_field(serializers.CharField())
     def get_full_name(self, obj):
         return obj.full_name
+

@@ -1,4 +1,4 @@
-.PHONY: help install run migrations migrate superuser test schema \
+.PHONY: help install run migrations migrate flush seed superuser test schema \
         docker-up docker-down docker-build docker-logs docker-ps \
         docker-migrate docker-migrations docker-test docker-superuser docker-schema docker-clean
 
@@ -12,9 +12,11 @@ help:
 	@echo "=========================================================================="
 	@echo " Local Commands:"
 	@echo "   make install            Install local Python dependencies"
-	@echo "   make run                Start Django local development server"
+	@echo "   make run                Start Celery Worker & Django local dev server"
 	@echo "   make migrations         Generate new Django database migrations"
 	@echo "   make migrate            Apply database migrations locally"
+	@echo "   make flush              Wipe & flush all database tables"
+	@echo "   make seed               Seed 10 products, categories & vendor data"
 	@echo "   make superuser          Create a new Django superuser (admin)"
 	@echo "   make test               Run test suite across all 12 domain apps"
 	@echo "   make schema             Generate & validate OpenAPI 3.1 schema.yml"
@@ -41,6 +43,8 @@ install:
 	pip install -r requirements/dev.txt
 
 run:
+	@echo "Starting Celery Worker & Django ASGI Server..."
+	$(PYTHON) -m celery -A core worker -l info --pool=solo &
 	$(MANAGE) runserver
 
 migrations:
@@ -49,11 +53,18 @@ migrations:
 migrate:
 	$(MANAGE) migrate
 
+flush:
+	$(MANAGE) flush --no-input
+
+seed:
+	$(PYTHON) seed_catalog.py
+
 superuser:
 	$(MANAGE) createsuperuser
 
 test:
 	$(MANAGE) test vendors catalog reviews accounts cart orders payments inventory promotions search notifications
+
 
 schema:
 	$(MANAGE) spectacular --validate --file schema.yml

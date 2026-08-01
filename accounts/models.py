@@ -15,9 +15,24 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(unique=True, db_index=True)
     first_name = models.CharField(max_length=150)
     last_name = models.CharField(max_length=150)
+    phone_number = models.CharField(max_length=30, blank=True, null=True)
+    bio = models.TextField(blank=True, null=True)
+    gender = models.CharField(
+        max_length=20,
+        choices=[
+            ("male", "Male"),
+            ("female", "Female"),
+            ("other", "Other"),
+            ("prefer_not_to_say", "Prefer Not To Say"),
+        ],
+        default="prefer_not_to_say",
+    )
+    age = models.PositiveIntegerField(blank=True, null=True)
+    profile_picture = models.URLField(blank=True, null=True)
     is_active = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
     date_joined = models.DateTimeField(default=timezone.now)
+
 
     objects = CustomUserManager()
 

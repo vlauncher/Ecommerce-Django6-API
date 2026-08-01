@@ -35,17 +35,23 @@ class RegisterView(generics.CreateAPIView):
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
 
-        # Generate OTP and enqueue background email task
+        # Generate 5-minute OTP, store in Redis & DB, and dispatch email
         otp = OTP.generate_for_user(user)
-        send_otp_email_task.enqueue(
-            user_id=user.id,
-            otp_code=otp.code,
-            template_name="otp_verification",
-        )
+        try:
+            from .services import RedisOTPService
+            RedisOTPService.store_otp(user.email, otp.code)
+        except Exception:
+            pass
+
+        try:
+            send_otp_email_task.delay(user.id, otp.code, "otp_verification")
+        except Exception:
+            from emails.services import EmailService
+            EmailService.send_otp_email(user=user, otp_code=otp.code, template_name="otp_verification")
 
         return Response(
             {
-                "detail": "Registration successful. Please check your email for the verification code.",
+                "detail": "Registration successful. Please check your email for the 5-minute verification code.",
                 "email": user.email,
             },
             status=status.HTTP_201_CREATED,
@@ -66,51 +72,66 @@ class VerifyOTPView(generics.GenericAPIView):
         serializer.is_valid(raise_exception=True)
 
         email = serializer.validated_data["email"]
-        otp_code = serializer.validated_data["otp"]
+        otp_code = serializer.validated_data.get("code") or serializer.validated_data.get("otp")
 
         try:
             user = User.objects.get(email=email)
         except User.DoesNotExist:
             return Response(
-                {"detail": "Invalid email or OTP."},
+                {"detail": "Invalid email or OTP code."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        otp = (
-            OTP.objects.filter(user=user, code=otp_code, is_used=False)
-            .order_by("-created_at")
-            .first()
-        )
+        try:
+            # 1. Check Redis Cache for 5-minute valid OTP
+            from .services import RedisOTPService
+            is_redis_valid = RedisOTPService.verify_otp(email, otp_code)
 
-        if not otp or not otp.is_valid:
+            # 2. Check Database OTP fallback
+            otp_db = (
+                OTP.objects.filter(user=user, code=otp_code, is_used=False)
+                .order_by("-created_at")
+                .first()
+            )
+
+            if not is_redis_valid and (not otp_db or not otp_db.is_valid):
+                return Response(
+                    {"detail": "Invalid or expired OTP code (codes expire in 5 minutes)."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            if otp_db:
+                otp_db.is_used = True
+                otp_db.save(update_fields=["is_used"])
+
+            user.is_active = True
+            user.save(update_fields=["is_active"])
+
+            # Dispatch welcome email asynchronously
+            try:
+                send_welcome_email_task.delay(user.id)
+            except Exception:
+                pass
+
+            # Issue JWT tokens
+            refresh = EmailTokenObtainPairSerializer.get_token(user)
+
             return Response(
-                {"detail": "Invalid or expired OTP."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        # Mark OTP used and activate user
-        otp.is_used = True
-        otp.save(update_fields=["is_used"])
-
-        user.is_active = True
-        user.save(update_fields=["is_active"])
-
-        # Enqueue welcome email task
-        send_welcome_email_task.enqueue(user_id=user.id)
-
-        # Issue JWT tokens
-        refresh = EmailTokenObtainPairSerializer.get_token(user)
-
-        return Response(
-            {
-                "detail": "Account verified successfully.",
-                "tokens": {
+                {
+                    "detail": "Account verified successfully.",
                     "access": str(refresh.access_token),
                     "refresh": str(refresh),
+                    "user": UserSerializer(user).data,
                 },
-            },
-            status=status.HTTP_200_OK,
-        )
+                status=status.HTTP_200_OK,
+            )
+        except Exception as e:
+            return Response(
+                {"detail": f"Verification error: {str(e)}"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+
 
 
 @extend_schema(
@@ -132,19 +153,24 @@ class ResendOTPView(generics.GenericAPIView):
         try:
             user = User.objects.get(email=email, is_active=False)
             otp = OTP.generate_for_user(user)
-            send_otp_email_task.enqueue(
-                user_id=user.id,
-                otp_code=otp.code,
-                template_name="otp_resend",
-            )
+
+            from .services import RedisOTPService
+            RedisOTPService.store_otp(user.email, otp.code)
+
+            try:
+                send_otp_email_task.delay(user.id, otp.code, "otp_resend")
+            except Exception:
+                from emails.services import EmailService
+                EmailService.send_otp_email(user=user, otp_code=otp.code, template_name="otp_resend")
         except User.DoesNotExist:
             # Silently pass to prevent enumeration
             pass
 
         return Response(
-            {"detail": "If an account with that email exists and is pending verification, a new OTP has been sent."},
+            {"detail": "If an account with that email exists and is pending verification, a new 5-minute OTP has been sent."},
             status=status.HTTP_200_OK,
         )
+
 
 
 @extend_schema(
@@ -167,15 +193,16 @@ class CustomTokenRefreshView(TokenRefreshView):
 
 @extend_schema(
     tags=["Authentication"],
-    summary="Get Authenticated User Profile",
-    description="Retrieves the current authenticated user's profile details.",
+    summary="Get or Update Authenticated User Profile",
+    description="Retrieves or updates the current authenticated user's profile details.",
 )
-class UserProfileView(generics.RetrieveAPIView):
+class UserProfileView(generics.RetrieveUpdateAPIView):
     serializer_class = UserSerializer
     permission_classes = (IsAuthenticated,)
 
     def get_object(self):
         return self.request.user
+
 
 
 @extend_schema(

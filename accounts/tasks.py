@@ -1,12 +1,12 @@
-from django.tasks import task
+from celery import shared_task
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
 
-@task(queue_name="emails", priority=5)
-def send_otp_email_task(user_id: int, otp_code: str, template_name: str):
-    """Background task to send OTP email."""
+@shared_task(name="send_otp_email_task")
+def send_otp_email_task(user_id: int, otp_code: str, template_name: str = "otp_verification"):
+    """Celery task to dispatch OTP verification email via Gmail SMTP."""
     from emails.services import EmailService
 
     try:
@@ -20,9 +20,9 @@ def send_otp_email_task(user_id: int, otp_code: str, template_name: str):
         pass
 
 
-@task(queue_name="emails", priority=3)
+@shared_task(name="send_welcome_email_task")
 def send_welcome_email_task(user_id: int):
-    """Background task to send welcome email upon account verification."""
+    """Celery task to dispatch welcome email upon account activation."""
     from emails.services import EmailService
 
     try:
@@ -30,3 +30,4 @@ def send_welcome_email_task(user_id: int):
         EmailService.send_welcome_email(user=user)
     except User.DoesNotExist:
         pass
+
