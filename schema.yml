@@ -190,6 +190,198 @@ paths:
               schema:
                 $ref: '#/components/schemas/VerifyOTP'
           description: ''
+  /api/v1/cart/:
+    get:
+      operationId: cart_retrieve
+      description: Retrieve current shopping cart for user or guest.
+      tags:
+      - Cart
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cart'
+          description: ''
+  /api/v1/cart/clear/:
+    delete:
+      operationId: cart_clear_destroy
+      description: Remove all items from shopping cart.
+      tags:
+      - Cart
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cart'
+          description: ''
+  /api/v1/cart/items/:
+    post:
+      operationId: cart_items_create
+      description: Add a product variant SKU to cart.
+      tags:
+      - Cart
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CartItemAddUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CartItemAddUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CartItemAddUpdateRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CartItemAddUpdate'
+          description: ''
+  /api/v1/cart/items/{id}/:
+    patch:
+      operationId: cart_items_partial_update
+      description: Update item quantity or remove item from cart.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Cart
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedCartItemQuantityRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedCartItemQuantityRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedCartItemQuantityRequest'
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cart'
+          description: ''
+    delete:
+      operationId: cart_items_destroy
+      description: Update item quantity or remove item from cart.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Cart
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cart'
+          description: ''
+  /api/v1/cart/merge/:
+    post:
+      operationId: cart_merge_create
+      description: Merge guest cart items into authenticated user cart on login.
+      tags:
+      - Cart
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CartMergeRequestRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CartMergeRequestRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CartMergeRequestRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cart'
+          description: ''
+  /api/v1/cart/saved-items/:
+    get:
+      operationId: cart_saved_items_list
+      description: List or save items for later.
+      tags:
+      - Saved Items
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SavedForLater'
+          description: ''
+    post:
+      operationId: cart_saved_items_create
+      description: List or save items for later.
+      tags:
+      - Saved Items
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SavedForLater'
+          description: ''
+  /api/v1/cart/saved-items/{id}/:
+    delete:
+      operationId: cart_saved_items_destroy
+      description: Remove saved item.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Saved Items
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
   /api/v1/catalog/admin/categories/:
     post:
       operationId: catalog_admin_categories_create
@@ -790,6 +982,360 @@ paths:
       responses:
         '204':
           description: No response body
+  /api/v1/orders/:
+    get:
+      operationId: orders_list
+      description: List authenticated user's order history.
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      tags:
+      - Orders
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedOrderListList'
+          description: ''
+  /api/v1/orders/{order_number}/:
+    get:
+      operationId: orders_retrieve
+      description: Retrieve detailed order information.
+      parameters:
+      - in: path
+        name: order_number
+        schema:
+          type: string
+        required: true
+      tags:
+      - Orders
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderDetail'
+          description: ''
+  /api/v1/orders/{order_number}/cancel/:
+    post:
+      operationId: orders_cancel_create
+      description: Cancel an unfulfilled order.
+      parameters:
+      - in: path
+        name: order_number
+        schema:
+          type: string
+        required: true
+      tags:
+      - Orders
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderDetailRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/OrderDetailRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/OrderDetailRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderDetail'
+          description: ''
+  /api/v1/orders/checkout/:
+    post:
+      operationId: orders_checkout_create
+      description: Place an order from the current shopping cart.
+      tags:
+      - Orders
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CheckoutRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CheckoutRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CheckoutRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Checkout'
+          description: ''
+  /api/v1/orders/returns/:
+    get:
+      operationId: orders_returns_list
+      description: Request a product return (RMA) or view past return requests.
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      tags:
+      - Orders - Returns
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedReturnRequestList'
+          description: ''
+    post:
+      operationId: orders_returns_create
+      description: Request a product return (RMA) or view past return requests.
+      tags:
+      - Orders - Returns
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReturnRequestRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ReturnRequestRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ReturnRequestRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReturnRequest'
+          description: ''
+  /api/v1/orders/vendor/sub-orders/:
+    get:
+      operationId: orders_vendor_sub_orders_list
+      description: 'Vendor dashboard: List vendor''s assigned sub-orders.'
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      tags:
+      - Orders - Vendor Dashboard
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedVendorSubOrderList'
+          description: ''
+  /api/v1/orders/vendor/sub-orders/{id}/:
+    put:
+      operationId: orders_vendor_sub_orders_update
+      description: 'Vendor dashboard: Update sub-order fulfillment status or add tracking
+        info.'
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Orders - Vendor Dashboard
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VendorSubOrderRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/VendorSubOrderRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/VendorSubOrderRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VendorSubOrder'
+          description: ''
+    patch:
+      operationId: orders_vendor_sub_orders_partial_update
+      description: 'Vendor dashboard: Update sub-order fulfillment status or add tracking
+        info.'
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Orders - Vendor Dashboard
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedVendorSubOrderRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedVendorSubOrderRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedVendorSubOrderRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VendorSubOrder'
+          description: ''
+  /api/v1/payments/{order_number}/:
+    get:
+      operationId: payments_list
+      description: View payment attempts and transactions for an order.
+      parameters:
+      - in: path
+        name: order_number
+        schema:
+          type: string
+        required: true
+      tags:
+      - Payments
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PaymentTransaction'
+          description: ''
+  /api/v1/payments/initiate/:
+    post:
+      operationId: payments_initiate_create
+      description: Initiate a payment transaction for an order.
+      tags:
+      - Payments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentInitiateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PaymentInitiateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PaymentInitiateRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentInitiate'
+          description: ''
+  /api/v1/payments/webhooks/flutterwave/:
+    post:
+      operationId: payments_webhooks_flutterwave_create
+      tags:
+      - Payments - Webhooks
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebhookResponse'
+          description: ''
+  /api/v1/payments/webhooks/paypal/:
+    post:
+      operationId: payments_webhooks_paypal_create
+      tags:
+      - Payments - Webhooks
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebhookResponse'
+          description: ''
+  /api/v1/payments/webhooks/stripe/:
+    post:
+      operationId: payments_webhooks_stripe_create
+      tags:
+      - Payments - Webhooks
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebhookResponse'
+          description: ''
   /api/v1/reviews/{id}/:
     get:
       operationId: reviews_retrieve
@@ -1230,6 +1776,98 @@ components:
       required:
       - id
       - value
+    Cart:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/CartItem'
+          readOnly: true
+        total_quantity:
+          type: integer
+          readOnly: true
+        subtotal:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - id
+      - items
+      - subtotal
+      - total_quantity
+      - updated_at
+    CartItem:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        variant:
+          allOf:
+          - $ref: '#/components/schemas/ProductVariant'
+          readOnly: true
+        quantity:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        subtotal:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - subtotal
+      - variant
+    CartItemAddUpdate:
+      type: object
+      properties:
+        variant_id:
+          type: string
+          format: uuid
+        quantity:
+          type: integer
+          minimum: 1
+          default: 1
+      required:
+      - variant_id
+    CartItemAddUpdateRequest:
+      type: object
+      properties:
+        variant_id:
+          type: string
+          format: uuid
+        quantity:
+          type: integer
+          minimum: 1
+          default: 1
+      required:
+      - variant_id
+    CartMergeRequestRequest:
+      type: object
+      properties:
+        session_key:
+          type: string
+          minLength: 1
+      required:
+      - session_key
     CategoryDetail:
       type: object
       properties:
@@ -1331,6 +1969,34 @@ components:
       - id
       - name
       - slug
+    Checkout:
+      type: object
+      properties:
+        shipping_address:
+          type: object
+          additionalProperties: {}
+        billing_address:
+          type: object
+          additionalProperties: {}
+        notes:
+          type: string
+      required:
+      - billing_address
+      - shipping_address
+    CheckoutRequest:
+      type: object
+      properties:
+        shipping_address:
+          type: object
+          additionalProperties: {}
+        billing_address:
+          type: object
+          additionalProperties: {}
+        notes:
+          type: string
+      required:
+      - billing_address
+      - shipping_address
     EmailTokenObtainPairRequest:
       type: object
       description: Custom SimpleJWT token serializer using email instead of username.
@@ -1346,6 +2012,16 @@ components:
       required:
       - email
       - password
+    GatewayEnum:
+      enum:
+      - stripe
+      - paypal
+      - flutterwave
+      type: string
+      description: |-
+        * `stripe` - Stripe
+        * `paypal` - PayPal
+        * `flutterwave` - Flutterwave
     GoogleAuth:
       type: object
       description: Serializer for Google OAuth token exchange.
@@ -1373,6 +2049,334 @@ components:
       description: |-
         * `physical` - Physical
         * `digital` - Digital
+    OrderDetail:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        order_number:
+          type: string
+          maxLength: 30
+        status:
+          $ref: '#/components/schemas/Status744Enum'
+        shipping_address: {}
+        billing_address: {}
+        subtotal:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        shipping_total:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        tax_total:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        discount_total:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        grand_total:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        currency:
+          type: string
+          maxLength: 3
+        notes:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItem'
+          readOnly: true
+        sub_orders:
+          type: array
+          items:
+            $ref: '#/components/schemas/VendorSubOrder'
+          readOnly: true
+        logs:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderLog'
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        paid_at:
+          type: string
+          format: date-time
+          nullable: true
+        shipped_at:
+          type: string
+          format: date-time
+          nullable: true
+        delivered_at:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+      - created_at
+      - grand_total
+      - id
+      - items
+      - logs
+      - order_number
+      - sub_orders
+      - subtotal
+    OrderDetailRequest:
+      type: object
+      properties:
+        order_number:
+          type: string
+          minLength: 1
+          maxLength: 30
+        status:
+          $ref: '#/components/schemas/Status744Enum'
+        shipping_address: {}
+        billing_address: {}
+        subtotal:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        shipping_total:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        tax_total:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        discount_total:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        grand_total:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        currency:
+          type: string
+          minLength: 1
+          maxLength: 3
+        notes:
+          type: string
+        paid_at:
+          type: string
+          format: date-time
+          nullable: true
+        shipped_at:
+          type: string
+          format: date-time
+          nullable: true
+        delivered_at:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+      - grand_total
+      - order_number
+      - subtotal
+    OrderItem:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        product_name:
+          type: string
+          maxLength: 500
+        variant_name:
+          type: string
+          maxLength: 255
+        sku:
+          type: string
+          maxLength: 100
+        variant_attributes: {}
+        unit_price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        quantity:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        line_total:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        download_url:
+          oneOf:
+          - type: string
+            format: uri
+            maxLength: 200
+          - type: string
+            maxLength: 0
+        download_expires_at:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+      - id
+      - line_total
+      - product_name
+      - quantity
+      - sku
+      - unit_price
+    OrderItemRequest:
+      type: object
+      properties:
+        product_name:
+          type: string
+          minLength: 1
+          maxLength: 500
+        variant_name:
+          type: string
+          maxLength: 255
+        sku:
+          type: string
+          minLength: 1
+          maxLength: 100
+        variant_attributes: {}
+        unit_price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        quantity:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        line_total:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        download_url:
+          oneOf:
+          - type: string
+            format: uri
+            maxLength: 200
+          - type: string
+            maxLength: 0
+        download_expires_at:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+      - line_total
+      - product_name
+      - quantity
+      - sku
+      - unit_price
+    OrderList:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        order_number:
+          type: string
+          maxLength: 30
+        status:
+          $ref: '#/components/schemas/Status744Enum'
+        grand_total:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        currency:
+          type: string
+          maxLength: 3
+        items_count:
+          type: integer
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        paid_at:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+      - created_at
+      - grand_total
+      - id
+      - items_count
+      - order_number
+    OrderLog:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        from_status:
+          type: string
+          maxLength: 30
+        to_status:
+          type: string
+          maxLength: 30
+        performed_by_email:
+          type: string
+          readOnly: true
+        notes:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - from_status
+      - id
+      - performed_by_email
+      - to_status
+    OrderLogRequest:
+      type: object
+      properties:
+        from_status:
+          type: string
+          minLength: 1
+          maxLength: 30
+        to_status:
+          type: string
+          minLength: 1
+          maxLength: 30
+        notes:
+          type: string
+      required:
+      - from_status
+      - to_status
+    PaginatedOrderListList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderList'
     PaginatedProductListList:
       type: object
       required:
@@ -1396,6 +2400,29 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ProductList'
+    PaginatedReturnRequestList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReturnRequest'
     PaginatedReviewList:
       type: object
       required:
@@ -1442,6 +2469,35 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/VendorPublic'
+    PaginatedVendorSubOrderList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/VendorSubOrder'
+    PatchedCartItemQuantityRequest:
+      type: object
+      properties:
+        quantity:
+          type: integer
+          minimum: 1
     PatchedProductCreateUpdateRequest:
       type: object
       properties:
@@ -1603,6 +2659,107 @@ components:
         bank_routing_number:
           type: string
           maxLength: 50
+    PatchedVendorSubOrderRequest:
+      type: object
+      properties:
+        status:
+          $ref: '#/components/schemas/VendorSubOrderStatusEnum'
+        subtotal:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        commission_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        vendor_payout:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        tracking_number:
+          type: string
+          maxLength: 100
+        tracking_url:
+          oneOf:
+          - type: string
+            format: uri
+            maxLength: 200
+          - type: string
+            maxLength: 0
+    PaymentInitiate:
+      type: object
+      properties:
+        order_number:
+          type: string
+        gateway:
+          $ref: '#/components/schemas/GatewayEnum'
+      required:
+      - gateway
+      - order_number
+    PaymentInitiateRequest:
+      type: object
+      properties:
+        order_number:
+          type: string
+          minLength: 1
+        gateway:
+          $ref: '#/components/schemas/GatewayEnum'
+      required:
+      - gateway
+      - order_number
+    PaymentTransaction:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        order:
+          type: string
+          format: uuid
+        gateway:
+          $ref: '#/components/schemas/GatewayEnum'
+        gateway_transaction_id:
+          type: string
+          maxLength: 255
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        currency:
+          type: string
+          maxLength: 3
+        status:
+          $ref: '#/components/schemas/PaymentTransactionStatusEnum'
+        idempotency_key:
+          type: string
+          maxLength: 255
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - amount
+      - created_at
+      - gateway
+      - gateway_transaction_id
+      - id
+      - idempotency_key
+      - order
+    PaymentTransactionStatusEnum:
+      enum:
+      - pending
+      - authorized
+      - captured
+      - failed
+      - refunded
+      type: string
+      description: |-
+        * `pending` - Pending
+        * `authorized` - Authorized
+        * `captured` - Captured
+        * `failed` - Failed
+        * `refunded` - Refunded
     ProductAttributeValue:
       type: object
       properties:
@@ -2227,6 +3384,79 @@ components:
       required:
       - price
       - sku
+    ProductVariantRequest:
+      type: object
+      properties:
+        sku:
+          type: string
+          minLength: 1
+          maxLength: 100
+        barcode:
+          type: string
+          maxLength: 100
+        name:
+          type: string
+          description: Auto-generated from variant options if blank
+          maxLength: 255
+        price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        compare_at_price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          nullable: true
+          description: Original price before discount (strikethrough price)
+        weight:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,5}(?:\.\d{0,3})?$
+          nullable: true
+          description: Weight in kg
+        length:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,6}(?:\.\d{0,2})?$
+          nullable: true
+        width:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,6}(?:\.\d{0,2})?$
+          nullable: true
+        height:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,6}(?:\.\d{0,2})?$
+          nullable: true
+        digital_file:
+          type: string
+          format: binary
+          nullable: true
+        download_limit:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          nullable: true
+          description: Max download count (null = unlimited)
+        download_expiry_days:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          nullable: true
+          description: Days until download link expires
+        is_active:
+          type: boolean
+        sort_order:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+      required:
+      - price
+      - sku
     Register:
       type: object
       description: Serializer for user registration.
@@ -2295,6 +3525,66 @@ components:
           minLength: 1
       required:
       - email
+    ReturnRequest:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        order:
+          type: string
+          format: uuid
+          readOnly: true
+        status:
+          allOf:
+          - $ref: '#/components/schemas/ReturnStatusEnum'
+          readOnly: true
+        reason:
+          type: string
+        admin_notes:
+          type: string
+          readOnly: true
+        refund_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          readOnly: true
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - admin_notes
+      - created_at
+      - id
+      - order
+      - reason
+      - refund_amount
+      - status
+    ReturnRequestRequest:
+      type: object
+      properties:
+        reason:
+          type: string
+          minLength: 1
+      required:
+      - reason
+    ReturnStatusEnum:
+      enum:
+      - requested
+      - approved
+      - received
+      - refunded
+      - rejected
+      type: string
+      description: |-
+        * `requested` - Requested
+        * `approved` - Approved
+        * `received` - Received
+        * `refunded` - Refunded
+        * `rejected` - Rejected
     Review:
       type: object
       properties:
@@ -2370,6 +3660,25 @@ components:
       required:
       - helpful_count
       - unhelpful_count
+    SavedForLater:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        variant:
+          allOf:
+          - $ref: '#/components/schemas/ProductVariant'
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - variant
     Status016Enum:
       enum:
       - draft
@@ -2384,6 +3693,28 @@ components:
         * `active` - Active
         * `inactive` - Inactive
         * `archived` - Archived
+    Status744Enum:
+      enum:
+      - draft
+      - pending_payment
+      - paid
+      - processing
+      - partially_shipped
+      - shipped
+      - delivered
+      - cancelled
+      - refunded
+      type: string
+      description: |-
+        * `draft` - Draft
+        * `pending_payment` - Pending Payment
+        * `paid` - Paid
+        * `processing` - Processing
+        * `partially_shipped` - Partially Shipped
+        * `shipped` - Shipped
+        * `delivered` - Delivered
+        * `cancelled` - Cancelled
+        * `refunded` - Refunded
     TokenRefresh:
       type: object
       properties:
@@ -2488,6 +3819,21 @@ components:
       - color_hex
       - id
       - option_value
+    VariantAttributeValueRequest:
+      type: object
+      properties:
+        attribute:
+          type: string
+          format: uuid
+        attribute_option:
+          type: string
+          format: uuid
+          nullable: true
+        value_text:
+          type: string
+          maxLength: 500
+      required:
+      - attribute
     VendorDetail:
       type: object
       properties:
@@ -2665,6 +4011,33 @@ components:
       - owner_name
       - slug
       - store_name
+    VendorPublicRequest:
+      type: object
+      properties:
+        store_name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        slug:
+          type: string
+          minLength: 1
+          maxLength: 255
+          pattern: ^[-a-zA-Z0-9_]+$
+        description:
+          type: string
+        logo:
+          type: string
+          format: binary
+          nullable: true
+        banner:
+          type: string
+          format: binary
+          nullable: true
+        is_verified:
+          type: boolean
+      required:
+      - slug
+      - store_name
     VendorRegistration:
       type: object
       properties:
@@ -2731,6 +4104,101 @@ components:
       required:
       - business_email
       - store_name
+    VendorSubOrder:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        vendor:
+          allOf:
+          - $ref: '#/components/schemas/VendorPublic'
+          readOnly: true
+        status:
+          $ref: '#/components/schemas/VendorSubOrderStatusEnum'
+        subtotal:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        commission_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        vendor_payout:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        tracking_number:
+          type: string
+          maxLength: 100
+        tracking_url:
+          oneOf:
+          - type: string
+            format: uri
+            maxLength: 200
+          - type: string
+            maxLength: 0
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItem'
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - commission_amount
+      - created_at
+      - id
+      - items
+      - subtotal
+      - vendor
+      - vendor_payout
+    VendorSubOrderRequest:
+      type: object
+      properties:
+        status:
+          $ref: '#/components/schemas/VendorSubOrderStatusEnum'
+        subtotal:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        commission_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        vendor_payout:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        tracking_number:
+          type: string
+          maxLength: 100
+        tracking_url:
+          oneOf:
+          - type: string
+            format: uri
+            maxLength: 200
+          - type: string
+            maxLength: 0
+      required:
+      - commission_amount
+      - subtotal
+      - vendor_payout
+    VendorSubOrderStatusEnum:
+      enum:
+      - processing
+      - shipped
+      - delivered
+      - cancelled
+      type: string
+      description: |-
+        * `processing` - Processing
+        * `shipped` - Shipped
+        * `delivered` - Delivered
+        * `cancelled` - Cancelled
     VerifyOTP:
       type: object
       description: Serializer for validating OTP code during account activation.
@@ -2760,6 +4228,13 @@ components:
       required:
       - email
       - otp
+    WebhookResponse:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+      - status
   securitySchemes:
     jwtAuth:
       type: http
