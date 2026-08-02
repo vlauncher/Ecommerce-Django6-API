@@ -126,6 +126,14 @@ DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default="noreply@ecommerce.com
 
 OTP_EXPIRY_MINUTES = 10
 
+# ─── Google OAuth ────────────────────────────────────────
+GOOGLE_OAUTH_CLIENT_ID = config("GOOGLE_OAUTH_CLIENT_ID", default="")
+GOOGLE_OAUTH_CLIENT_SECRET = config("GOOGLE_OAUTH_CLIENT_SECRET", default="")
+GOOGLE_OAUTH_REDIRECT_URI = config(
+    "GOOGLE_OAUTH_REDIRECT_URI",
+    default="http://localhost:8000/api/v1/auth/google/callback/",
+)
+
 # ─── CORS ────────────────────────────────────────────────
 CORS_ALLOWED_ORIGINS = config(
     "CORS_ALLOWED_ORIGINS",
@@ -145,6 +153,7 @@ SECURE_CSP = {
     "object-src": [CSP.NONE],
     "base-uri": [CSP.SELF],
     "frame-ancestors": [CSP.NONE],
+    "connect-src": [CSP.SELF, "https://accounts.google.com", "https://oauth2.googleapis.com"],
 }
 
 # ─── Caching (Redis) ────────────────────────────────────

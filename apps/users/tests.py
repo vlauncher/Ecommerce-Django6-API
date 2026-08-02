@@ -86,3 +86,36 @@ class DjangoNinjaUsersApiTests(TestCase):
         self.assertEqual(profile_res.status_code, 200)
         prof_data = profile_res.json()
         self.assertEqual(prof_data["user"]["email"], "jane@example.com")
+
+    @patch("apps.users.google_oauth.settings")
+    def test_google_login_redirect(self, mock_settings):
+        mock_settings.GOOGLE_OAUTH_CLIENT_ID = "test-client-id"
+        mock_settings.GOOGLE_OAUTH_REDIRECT_URI = "http://localhost:8000/api/v1/auth/google/callback/"
+
+        res = self.client.get("/api/v1/auth/google/login/")
+        self.assertEqual(res.status_code, 302)
+        self.assertIn("https://accounts.google.com/o/oauth2/v2/auth", res.headers["Location"])
+        self.assertIn("client_id=test-client-id", res.headers["Location"])
+
+    @patch("apps.users.google_oauth.verify_google_id_token")
+    @patch("apps.users.google_oauth.exchange_code_for_tokens")
+    def test_google_callback_auto_registers_user(self, mock_exchange, mock_verify):
+        mock_exchange.return_value = {"id_token": "fake-google-id-token"}
+        mock_verify.return_value = {
+            "email": "googleuser@example.com",
+            "given_name": "Google",
+            "family_name": "User",
+            "iss": "https://accounts.google.com",
+        }
+
+        res = self.client.get("/api/v1/auth/google/callback/?code=fake-code")
+        self.assertEqual(res.status_code, 200)
+        data = res.json()
+        self.assertIn("access", data)
+        self.assertIn("refresh", data)
+        self.assertEqual(data["user"]["email"], "googleuser@example.com")
+
+        user = User.objects.get(email="googleuser@example.com")
+        self.assertTrue(user.is_verified)
+        self.assertEqual(user.first_name, "Google")
+        self.assertEqual(user.last_name, "User")

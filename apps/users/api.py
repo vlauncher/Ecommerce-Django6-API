@@ -1,4 +1,5 @@
 from typing import Optional
+from django.http import HttpResponseRedirect
 from ninja import Router, File, Form, UploadedFile
 from .schemas import (
     RegisterIn, VerifyOTPIn, LoginIn, ResendOTPIn,
@@ -7,9 +8,28 @@ from .schemas import (
 )
 from .auth import JWTAuth
 from . import services
+from .google_oauth import get_google_auth_url, agoogle_oauth_callback
 
 auth_router = Router(tags=["Authentication"])
 user_router = Router(tags=["User Profile"])
+
+
+@auth_router.get("/google/login/", auth=None)
+async def google_login(request):
+    """
+    Redirect to Google OAuth consent screen.
+    """
+    auth_url = get_google_auth_url()
+    return HttpResponseRedirect(auth_url)
+
+
+@auth_router.get("/google/callback/", auth=None, response={200: TokenOut})
+async def google_callback(request, code: str):
+    """
+    Handle Google OAuth callback. Exchanges auth code for tokens,
+    finds or creates user, and returns JWT tokens.
+    """
+    return await agoogle_oauth_callback(code)
 
 
 @auth_router.post("/register", response={201: MessageOut})
