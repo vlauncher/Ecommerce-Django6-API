@@ -1,4 +1,0 @@
--r base.txt
-psycopg[binary]>=3.2
-uvicorn[standard]>=0.32
-gunicorn>=23.0
