@@ -10,7 +10,7 @@ from ninja.errors import HttpError
 import cloudinary.uploader
 
 from .models import User, UserProfile
-from .selectors import aget_user_by_email, aget_profile_by_user
+from .selectors import aget_user_by_email, aget_user_by_id, aget_profile_by_user
 from .auth import create_jwt_token, decode_jwt_token
 
 logger = logging.getLogger(__name__)
@@ -160,7 +160,7 @@ async def arefresh_token(refresh_token: str) -> dict:
     """
     try:
         payload = decode_jwt_token(refresh_token, expected_type="refresh")
-        user = await aget_user_by_email(payload.get("user_id"))
+        user = await aget_user_by_id(payload.get("user_id"))
         if not user or not user.is_active:
             raise HttpError(401, "User not active.")
 

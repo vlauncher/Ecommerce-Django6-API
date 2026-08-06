@@ -2,7 +2,7 @@ import jwt
 from datetime import datetime, timedelta, timezone
 from django.conf import settings
 from ninja.security import HttpBearer
-from .selectors import aget_user_by_id, aget_user_by_email
+from .selectors import aget_user_by_id
 
 
 def create_jwt_token(user_id: int) -> dict:

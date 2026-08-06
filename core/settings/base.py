@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     "ninja",
     # Local apps
     "apps.users",
+    "apps.shops",
 ]
 
 # ─── Middleware ──────────────────────────────────────────
@@ -125,6 +126,7 @@ EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD", default="")
 DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default="noreply@ecommerce.com")
 
 OTP_EXPIRY_MINUTES = 10
+SHOP_INVITATION_EXPIRY_DAYS = config("SHOP_INVITATION_EXPIRY_DAYS", default=7, cast=int)
 
 # ─── Google OAuth ────────────────────────────────────────
 GOOGLE_OAUTH_CLIENT_ID = config("GOOGLE_OAUTH_CLIENT_ID", default="")
