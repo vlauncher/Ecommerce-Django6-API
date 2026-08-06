@@ -21,6 +21,20 @@ Authentication is account-wide. Shop-scoped requests select a shop by its slug a
 - `POST /api/v1/shops/{shop_slug}/invitations` invites a member by email.
 - `POST /api/v1/invitations/{token}/accept` accepts an invitation.
 - `GET /api/v1/shops/{shop_slug}/users/profile` returns the authenticated user's profile with shop membership context.
+- `POST /api/v1/shops/{shop_slug}/coupons` creates a shop coupon backed by a promotion rule.
+- `POST /api/v1/cart/coupon` validates and applies a coupon to the authenticated customer's cart.
+- `POST /api/v1/checkout` revalidates the coupon, records the discount snapshot, and consumes the redemption atomically.
+
+## Management API
+
+Operational resources use a consistent shop-scoped CRUD pattern:
+
+```text
+/api/v1/manage/shops/{shop_slug}/{resource}
+/api/v1/manage/shops/{shop_slug}/{resource}/{id}
+```
+
+These routes support list, create, retrieve, update, and delete operations for catalog, inventory, promotions, coupons, shipping, tax, gift cards, seller orders, shipments, conversations, offers, reviews, disputes, and payout resources. Ledger, payment-event, redemption, and payment records are immutable and expose read/reconciliation workflows instead of destructive updates.
 
 ## Getting Started
 

@@ -30,6 +30,11 @@ INSTALLED_APPS = [
     # Local apps
     "apps.users",
     "apps.shops",
+    "apps.catalog",
+    "apps.commerce",
+    "apps.payments",
+    "apps.interactions",
+    "apps.management_api",
 ]
 
 # ─── Middleware ──────────────────────────────────────────
@@ -127,6 +132,11 @@ DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default="noreply@ecommerce.com
 
 OTP_EXPIRY_MINUTES = 10
 SHOP_INVITATION_EXPIRY_DAYS = config("SHOP_INVITATION_EXPIRY_DAYS", default=7, cast=int)
+PAYSTACK_SECRET_KEY = config("PAYSTACK_SECRET_KEY", default="")
+PAYSTACK_PUBLIC_KEY = config("PAYSTACK_PUBLIC_KEY", default="")
+PLATFORM_COMMISSION_PERCENT = config("PLATFORM_COMMISSION_PERCENT", default=10, cast=int)
+SELLER_PAYOUT_HOLD_DAYS = config("SELLER_PAYOUT_HOLD_DAYS", default=7, cast=int)
+DISPUTE_WINDOW_DAYS = config("DISPUTE_WINDOW_DAYS", default=7, cast=int)
 
 # ─── Google OAuth ────────────────────────────────────────
 GOOGLE_OAUTH_CLIENT_ID = config("GOOGLE_OAUTH_CLIENT_ID", default="")
@@ -166,6 +176,13 @@ CACHES = {
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         },
+    }
+}
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {"hosts": [config("REDIS_URL", default="redis://127.0.0.1:6379/0")]},
     }
 }
 

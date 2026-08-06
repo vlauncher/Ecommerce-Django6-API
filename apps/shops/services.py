@@ -123,3 +123,15 @@ def accept_invitation(user, raw_token):
         invitation.accepted_at = timezone.now()
         invitation.save(update_fields=("accepted_at",))
     return {"detail": f"You joined {invitation.shop.name} successfully."}
+
+
+@sync_to_async(thread_sensitive=True)
+def list_user_shops(user):
+    return [{"id": membership.shop_id, "name": membership.shop.name, "slug": membership.shop.slug, "role": membership.role, "is_active": membership.shop.is_active} for membership in ShopMembership.objects.select_related("shop").filter(user=user, is_active=True)]
+
+
+@sync_to_async(thread_sensitive=True)
+def deactivate_shop(shop):
+    shop.is_active = False
+    shop.save(update_fields=("is_active", "updated_at"))
+    return {"detail": "Shop deactivated successfully."}

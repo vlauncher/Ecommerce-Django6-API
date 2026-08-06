@@ -5,6 +5,11 @@ from ninja import NinjaAPI
 from ninja.openapi.docs import Redoc
 from apps.users.api import auth_router, user_router
 from apps.shops.api import invitation_router, shop_router
+from apps.catalog.api import catalog_router
+from apps.commerce.api import commerce_router
+from apps.payments.api import payment_router
+from apps.interactions.api import interaction_router
+from apps.management_api.api import management_router
 
 api = NinjaAPI(
     title="Ecommerce Django 6 API",
@@ -17,6 +22,11 @@ api.add_router("/api/v1/auth/", auth_router)
 api.add_router("/api/v1/users/", user_router)
 api.add_router("/api/v1/shops/", shop_router)
 api.add_router("/api/v1/invitations/", invitation_router)
+api.add_router("/api/v1/", catalog_router)
+api.add_router("/api/v1/", commerce_router)
+api.add_router("/api/v1/payments/", payment_router)
+api.add_router("/api/v1/", interaction_router)
+api.add_router("/api/v1/manage/", management_router)
 
 
 def redoc_view(request):
