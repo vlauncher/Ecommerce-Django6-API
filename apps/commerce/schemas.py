@@ -1,6 +1,7 @@
 from typing import Optional
 
 from pydantic import BaseModel, Field
+from pydantic import EmailStr
 
 
 class CartItemIn(BaseModel):
@@ -33,8 +34,34 @@ class CouponApplyIn(BaseModel):
 class CheckoutIn(BaseModel):
     shipping_address: dict
     billing_address: Optional[dict] = None
+    address_id: int | None = None
+    shipping_rate_ids: dict[str, int] = {}
+    gift_card_code: str = ""
     coupon_code: str = ""
     tip_minor: int = Field(default=0, ge=0)
+    customer_email: EmailStr | None = None
+
+
+class AddressIn(BaseModel):
+    label: str = "default"
+    recipient_name: str
+    phone: str = ""
+    line1: str
+    line2: str = ""
+    city: str
+    state: str
+    country: str = "NG"
+    postal_code: str = ""
+
+
+class WishlistItemIn(BaseModel):
+    variant_id: int
+
+
+class ReturnRequestIn(BaseModel):
+    seller_order_id: int
+    reason: str = Field(min_length=1, max_length=120)
+    description: str = ""
 
 
 class CheckoutOut(BaseModel):

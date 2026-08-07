@@ -73,6 +73,11 @@ def adjust_stock(shop, user, data):
         stock.on_hand += data["quantity_delta"]
         stock.save(update_fields=("on_hand", "updated_at"))
         InventoryLedgerEntry.objects.create(variant=variant, warehouse=warehouse, quantity_delta=data["quantity_delta"], reason=data["reason"], created_by=user)
+        if stock.available <= stock.reorder_level:
+            from apps.interactions.models import Notification
+            from apps.shops.models import ShopMembership
+            recipients = ShopMembership.objects.filter(shop=shop, is_active=True).exclude(role=ShopMembership.Role.CUSTOMER).values_list("user_id", flat=True)
+            Notification.objects.bulk_create([Notification(user_id=user_id, kind="inventory.low_stock", title="Low stock alert", body=f"{variant.product.name} ({variant.sku}) is low on stock.", payload={"variant_id": variant.id, "warehouse_id": warehouse.id, "available": stock.available}) for user_id in recipients])
         return {"variant_id": variant.id, "warehouse_id": warehouse.id, "on_hand": stock.on_hand, "reserved": stock.reserved, "available": stock.available}
 
 

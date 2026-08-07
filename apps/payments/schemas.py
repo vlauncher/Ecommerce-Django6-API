@@ -20,3 +20,9 @@ class RefundIn(BaseModel):
 class WithdrawalIn(BaseModel):
     amount_minor: int = Field(gt=0)
     reason: str = "Seller withdrawal"
+
+
+class PayoutRecipientIn(BaseModel):
+    bank_code: str
+    account_number: str
+    account_name: str = ""

@@ -4,7 +4,7 @@ from ninja import Router, File, Form, UploadedFile
 from .schemas import (
     RegisterIn, VerifyOTPIn, LoginIn, ResendOTPIn,
     ForgotPasswordIn, ResetPasswordIn, ChangePasswordIn, RefreshTokenIn,
-    MessageOut, TokenOut, UserProfileOut
+    MessageOut, TokenOut, UserProfileOut, DeleteAccountIn
 )
 from .auth import JWTAuth
 from . import services
@@ -100,6 +100,20 @@ async def change_password(request, payload: ChangePasswordIn):
     """
     await services.achange_password(request.auth, payload.old_password, payload.new_password, payload.confirm_password)
     return {"detail": "Password changed successfully."}
+
+
+@auth_router.delete("/account", auth=JWTAuth(), response={200: MessageOut})
+async def delete_account(request, payload: DeleteAccountIn):
+    await services.adelete_account(request.auth, payload.password)
+    return {"detail": "Your account has been deactivated and anonymized."}
+
+
+@user_router.get("/data-export", auth=JWTAuth())
+async def export_account_data(request):
+    from apps.commerce.models import Address, Order
+    addresses = [{"id": item.id, "label": item.label, "recipient_name": item.recipient_name, "phone": item.phone, "line1": item.line1, "line2": item.line2, "city": item.city, "state": item.state, "country": item.country, "postal_code": item.postal_code} async for item in Address.objects.filter(user=request.auth)]
+    orders = [{"id": item.id, "number": item.number, "status": item.status, "total_minor": item.total_minor, "currency": item.currency, "created_at": item.created_at} async for item in Order.objects.filter(user=request.auth)]
+    return {"user": {"id": request.auth.id, "email": request.auth.email, "first_name": request.auth.first_name, "last_name": request.auth.last_name}, "addresses": addresses, "orders": orders}
 
 
 @user_router.get("/profile", auth=JWTAuth(), response={200: UserProfileOut})

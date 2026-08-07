@@ -93,3 +93,13 @@ class Notification(models.Model):
     payload = models.JSONField(default=dict, blank=True)
     read_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+
+class AuditLog(models.Model):
+    actor = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL, related_name="audit_logs")
+    shop = models.ForeignKey(Shop, null=True, blank=True, on_delete=models.SET_NULL, related_name="audit_logs")
+    action = models.CharField(max_length=100)
+    resource = models.CharField(max_length=100)
+    object_id = models.CharField(max_length=80, blank=True)
+    payload = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)

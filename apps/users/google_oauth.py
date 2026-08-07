@@ -1,5 +1,6 @@
 import logging
 import requests
+from urllib.parse import urlencode
 from django.conf import settings
 from google.oauth2 import id_token
 from google.auth.transport.requests import Request as GoogleRequest
@@ -34,7 +35,7 @@ def get_google_auth_url() -> str:
         "access_type": "offline",
         "prompt": "consent",
     }
-    query_string = "&".join(f"{k}={v}" for k, v in params.items())
+    query_string = urlencode(params)
     return f"{GOOGLE_AUTH_URL}?{query_string}"
 
 

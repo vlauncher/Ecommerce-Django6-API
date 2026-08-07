@@ -6,6 +6,7 @@ from asgiref.sync import sync_to_async
 from django.core.cache import cache
 from django.core.mail import send_mail
 from django.conf import settings
+from django.utils import timezone
 from ninja.errors import HttpError
 import cloudinary.uploader
 
@@ -14,6 +15,21 @@ from .selectors import aget_user_by_email, aget_user_by_id, aget_profile_by_user
 from .auth import create_jwt_token, decode_jwt_token
 
 logger = logging.getLogger(__name__)
+
+
+async def acheck_rate_limit(key: str, limit: int, window: int) -> None:
+    def check():
+        cache_key = f"rate:{key}"
+        if cache.add(cache_key, 1, timeout=window):
+            return
+        try:
+            count = cache.incr(cache_key)
+        except ValueError:
+            cache.set(cache_key, 1, timeout=window)
+            return
+        if count > limit:
+            raise HttpError(429, "Too many attempts. Please try again later.")
+    await sync_to_async(check)()
 
 
 # ─── Cache & Email Helpers (Wrapped for Async) ──────────────────────────
@@ -103,6 +119,8 @@ async def aregister_user(validated_data: dict) -> User:
             first_name=first_name,
             last_name=last_name,
             is_verified=False,
+            terms_accepted_at=timezone.now() if validated_data.get("accept_terms") else None,
+            privacy_accepted_at=timezone.now() if validated_data.get("accept_privacy") else None,
         )
         user.set_password(password)
         await user.asave()
@@ -130,6 +148,7 @@ async def alogin_user(email: str, password: str) -> dict:
     """
     Authenticates user and returns JWT token pair asynchronously.
     """
+    await acheck_rate_limit(f"login:{email.lower()}", 10, 900)
     user = await aget_user_by_email(email)
     if not user or not user.check_password(password):
         raise HttpError(401, "Invalid email or password.")
@@ -184,7 +203,8 @@ async def aresend_otp(email: str, purpose: str) -> None:
     """
     Resends a fresh OTP to the provided email if user exists.
     """
-    user = get_user_by_email = await aget_user_by_email(email)
+    await acheck_rate_limit(f"otp:{purpose}:{email.lower()}", 5, 900)
+    user = await aget_user_by_email(email)
     if not user:
         raise HttpError(400, "User with this email does not exist.")
 
@@ -235,6 +255,18 @@ async def achange_password(user: User, old_password: str, new_password: str, con
 
     user.set_password(new_password)
     await user.asave()
+
+
+async def adelete_account(user: User, password: str) -> None:
+    if not user.check_password(password):
+        raise HttpError(400, "Incorrect password.")
+    user.email = f"deleted-{user.id}@invalid.local"
+    user.first_name = "Deleted"
+    user.last_name = "User"
+    user.is_active = False
+    user.is_verified = False
+    user.set_unusable_password()
+    await user.asave(update_fields=("email", "first_name", "last_name", "is_active", "is_verified", "password", "updated_at"))
 
 
 async def aget_user_profile(user: User) -> dict:

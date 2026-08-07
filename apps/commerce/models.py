@@ -86,6 +86,8 @@ class Order(models.Model):
 
     number = models.CharField(max_length=40, unique=True)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL, related_name="orders")
+    guest_email = models.EmailField(blank=True)
+    guest_token = models.CharField(max_length=100, blank=True, db_index=True)
     currency = models.CharField(max_length=3, default="NGN")
     status = models.CharField(max_length=30, choices=Status.choices, default=Status.PENDING_PAYMENT)
     subtotal_minor = models.PositiveBigIntegerField(default=0)
@@ -143,6 +145,36 @@ class Shipment(models.Model):
     status = models.CharField(max_length=30, default="pending")
     shipped_at = models.DateTimeField(null=True, blank=True)
     delivered_at = models.DateTimeField(null=True, blank=True)
+
+
+class ReturnRequest(models.Model):
+    class Status(models.TextChoices):
+        REQUESTED = "requested", "Requested"
+        APPROVED = "approved", "Approved"
+        REJECTED = "rejected", "Rejected"
+        RECEIVED = "received", "Received"
+        REFUNDED = "refunded", "Refunded"
+
+    order = models.ForeignKey(Order, on_delete=models.PROTECT, related_name="return_requests")
+    seller_order = models.ForeignKey(SellerOrder, on_delete=models.PROTECT, related_name="return_requests")
+    requested_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="return_requests")
+    reason = models.CharField(max_length=120)
+    description = models.TextField(blank=True)
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.REQUESTED)
+    resolution = models.TextField(blank=True)
+    refund_amount_minor = models.PositiveBigIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+
+class CheckoutAttempt(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="checkout_attempts")
+    idempotency_key = models.CharField(max_length=120)
+    response = models.JSONField(default=dict)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=("user", "idempotency_key"), name="unique_user_checkout_idempotency_key")]
 
 
 class WishlistItem(models.Model):

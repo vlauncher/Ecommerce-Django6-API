@@ -8,8 +8,8 @@ from ninja import Router
 from ninja.errors import HttpError
 
 from apps.catalog.models import Category, Collection, Coupon, CouponRedemption, InventoryLedgerEntry, PriceRule, Product, ProductAttributeValue, ProductVariant, Promotion, StockItem, Warehouse
-from apps.commerce.models import Address, GiftCard, GiftCardTransaction, SellerOrder, Shipment, ShippingRate, ShippingZone, TaxRate
-from apps.interactions.models import Conversation, Dispute, Message, Offer, Review
+from apps.commerce.models import Address, GiftCard, GiftCardTransaction, ReturnRequest, SellerOrder, Shipment, ShippingRate, ShippingZone, TaxRate
+from apps.interactions.models import AuditLog, Conversation, Dispute, Message, Offer, Review
 from apps.payments.models import LedgerEntry, Payment, PaymentEvent, PayoutRecipient, Refund, Withdrawal
 from apps.shops.models import ShopMembership
 from apps.shops.permissions import aget_shop_context
@@ -39,6 +39,7 @@ RESOURCE_MAP = {
     "gift-card-transactions": (GiftCardTransaction, "gift_card__shop", {"owner", "manager"}),
     "seller-orders": (SellerOrder, "shop", {"owner", "manager", "staff"}),
     "shipments": (Shipment, "seller_order__shop", {"owner", "manager", "staff"}),
+    "return-requests": (ReturnRequest, "seller_order__shop", {"owner", "manager", "staff"}),
     "conversations": (Conversation, "shop", {"owner", "manager", "staff"}),
     "messages": (Message, "conversation__shop", {"owner", "manager", "staff"}),
     "offers": (Offer, "shop", {"owner", "manager", "staff"}),
@@ -122,7 +123,7 @@ async def list_resource(request, shop_slug: str, resource: str):
 
 @management_router.post("/shops/{shop_slug}/{resource}", auth=JWTAuth())
 async def create_resource(request, shop_slug: str, resource: str, payload: dict):
-    shop, (model, _, _) = await _authorized(request, shop_slug, resource, write=True)
+    shop, (model, lookup, _) = await _authorized(request, shop_slug, resource, write=True)
 
     @sync_to_async(thread_sensitive=True)
     def create():
@@ -133,6 +134,7 @@ async def create_resource(request, shop_slug: str, resource: str, payload: dict)
                     raise HttpError(400, "Related objects must belong to this shop.")
         except (ValidationError, ValueError, TypeError) as exc:
             raise HttpError(400, str(exc))
+        AuditLog.objects.create(actor=request.auth, shop=shop, action="create", resource=resource, object_id=str(instance.pk), payload=payload)
         return _serialize(instance)
 
     return await create()
@@ -171,6 +173,7 @@ async def update_resource(request, shop_slug: str, resource: str, object_id: int
                     raise HttpError(400, "Related objects must belong to this shop.")
         except (ValidationError, ValueError, TypeError) as exc:
             raise HttpError(400, str(exc))
+        AuditLog.objects.create(actor=request.auth, shop=shop, action="update", resource=resource, object_id=str(instance.pk), payload=payload)
         return _serialize(instance)
 
     return await update()
@@ -187,6 +190,7 @@ async def delete_resource(request, shop_slug: str, resource: str, object_id: int
         except model.DoesNotExist:
             raise HttpError(404, "Resource not found.")
         instance.delete()
+        AuditLog.objects.create(actor=request.auth, shop=shop, action="delete", resource=resource, object_id=str(object_id))
         return {"detail": "Resource deleted successfully."}
 
     return await delete()
@@ -203,6 +207,10 @@ async def update_seller_order_status(request, shop_slug: str, seller_order_id: i
     updated = await sync_to_async(SellerOrder.objects.filter(shop=shop, pk=seller_order_id).update, thread_sensitive=True)(status=status)
     if not updated:
         raise HttpError(404, "Seller order not found.")
+    seller_order = await SellerOrder.objects.select_related("order").aget(pk=seller_order_id)
+    if seller_order.order.user_id:
+        from apps.interactions.models import Notification
+        await Notification.objects.acreate(user_id=seller_order.order.user_id, kind="seller_order.status", title="Order status updated", body=f"Your order status is now {status}.", payload={"order_id": seller_order.order_id, "seller_order_id": seller_order_id, "status": status})
     return {"id": seller_order_id, "status": status}
 
 
@@ -240,3 +248,18 @@ async def respond_to_offer(request, shop_slug: str, offer_id: int, payload: dict
     if not updated:
         raise HttpError(404, "Offer not found.")
     return {"id": offer_id, **updates}
+
+
+@management_router.get("/shops/{shop_slug}/analytics/summary", auth=JWTAuth())
+async def analytics_summary(request, shop_slug: str):
+    from asgiref.sync import sync_to_async
+    from django.db.models import Count, Sum
+    from apps.commerce.models import SellerOrder
+    from apps.payments.models import LedgerEntry
+    shop, _ = await aget_shop_context(request, shop_slug, {ShopMembership.Role.OWNER, ShopMembership.Role.MANAGER, ShopMembership.Role.STAFF})
+
+    def summarize():
+        orders = SellerOrder.objects.filter(shop=shop)
+        return {"orders_total": orders.count(), "orders_by_status": {row["status"]: row["count"] for row in orders.values("status").annotate(count=Count("id"))}, "sales_minor": orders.aggregate(total=Sum("subtotal_minor"))["total"] or 0, "commission_minor": orders.aggregate(total=Sum("commission_minor"))["total"] or 0, "available_payable_minor": LedgerEntry.objects.filter(shop=shop, entry_type=LedgerEntry.EntryType.SELLER_PAYABLE).aggregate(total=Sum("amount_minor"))["total"] or 0}
+
+    return await sync_to_async(summarize, thread_sensitive=True)()

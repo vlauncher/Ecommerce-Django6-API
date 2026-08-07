@@ -12,6 +12,8 @@ class RegisterIn(BaseModel):
     email: EmailStr
     password: str = Field(min_length=8)
     confirm_password: str
+    accept_terms: bool = False
+    accept_privacy: bool = False
 
 
 class VerifyOTPIn(BaseModel):
@@ -42,6 +44,10 @@ class ChangePasswordIn(BaseModel):
     old_password: str
     new_password: str = Field(min_length=8)
     confirm_password: str
+
+
+class DeleteAccountIn(BaseModel):
+    password: str
 
 
 class RefreshTokenIn(BaseModel):

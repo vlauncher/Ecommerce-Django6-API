@@ -45,6 +45,17 @@ class ProductOut(BaseModel):
     variants: list[VariantOut]
 
 
+class ProductDetailOut(ProductOut):
+    shop_slug: str
+    brand: str
+    is_digital: bool
+    requires_shipping: bool
+
+
+class ProductSearchOut(ProductDetailOut):
+    min_price_minor: int | None = None
+
+
 class StockAdjustIn(BaseModel):
     variant_id: int
     warehouse_id: int
